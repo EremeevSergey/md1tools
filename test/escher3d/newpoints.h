@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QList>
 #include <QVBoxLayout>
+#include <QtNumeric>
 
 class CTableLine : public QWidget
 {

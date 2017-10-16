@@ -440,6 +440,10 @@ void CDeltaBedCalibrationTools::calculate ()
     double zyPerc    = 0.25;
     double zyOppPerc = 0.25;
 
+    Q_UNUSED(yzOppPerc);
+    Q_UNUSED(zxOppPerc);
+
+
     double j = 0;
     //correction of one tower allows the diagonal rod to respond more accurately
     while (j < 1)

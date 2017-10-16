@@ -1,3 +1,4 @@
+#include <QDebug>
 #include "opendact_wnd.h"
 #include "common.h"
 
@@ -149,6 +150,8 @@ void COpendactWnd::checkHeights  ()
     float valueZ = 0.482F * plateDiameter;
     float valueXYLarge = 0.417F * plateDiameter;
     float valueXYSmall = 0.241F * plateDiameter;
+
+    Q_UNUSED(pauseTimeSet);
 
 //    Printer.sendCmd(QString("G0 F%1").arg(UserVariables.xySpeed * 60),false);//converts mm/s to mm/min
     switch (currentPosition){
@@ -494,6 +497,7 @@ void COpendactWnd::activeLoopOld    ()
 
 void COpendactWnd::handleInput(const QString& message, bool canMove)
 {
+    Q_UNUSED(message);
     qDebug() << "    handleInput(){";
     if (OpenDACT.checkHeights == true && EEPROM.tempEEPROMSet == true &&
             OpenDACT.calibrateInProgress == false && OpenDACT.EEPROMReadOnly == false){
@@ -570,6 +574,8 @@ void COpendactWnd::positionFlowOld()
     float valueZ = 0.482F * plateDiameter;
     float valueXYLarge = 0.417F * plateDiameter;
     float valueXYSmall = 0.241F * plateDiameter;
+
+    Q_UNUSED(pauseTimeSet);
 
     if (UserVariables.probeChoice == "Z-Probe" && wasSet == false){
         switch (iteration){

@@ -2,6 +2,7 @@
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTextStream>
 #include "eeprom_conf.h"
 #include "../core/core.h"
 #include "../common.h"

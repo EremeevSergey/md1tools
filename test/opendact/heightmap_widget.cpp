@@ -4,6 +4,7 @@
 #include "heightmap_widget.h"
 #include <QDoubleValidator>
 #include <QDebug>
+#include <QtNumeric>
 
 CHeightmapWidget::CHeightmapWidget(QWidget *parent) :
     QWidget(parent),Ui::Heightmap_widget()
