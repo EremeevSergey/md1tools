@@ -31,17 +31,10 @@ SOURCES += main.cpp\
     test/escher3d/escher3d.cpp \
     test/opendact/opendact_wnd.cpp \
     test/opendact/heightmap_widget.cpp \
-    test/opendact/opendact/opendact.cpp \
-    test/opendact/opendact/opendact_user_var.cpp \
-    test/opendact/opendact/opendact_eeprom.cpp \
     test/Delta-Bed-Calibration-Tool/dbct.cpp \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.cpp \
     test/opendact/2dchart.cpp \
-    test/escher3d/newpoints.cpp \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact_calibration.cpp \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact_eeprom.cpp \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact_user_var.cpp \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact.cpp
+    test/escher3d/newpoints.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -63,17 +56,10 @@ HEADERS  += mainwindow.h \
     test/escher3d/escher3d.h \
     test/opendact/opendact_wnd.h \
     test/opendact/heightmap_widget.h \
-    test/opendact/opendact/opendact.h \
-    test/opendact/opendact/opendact_user_var.h \
-    test/opendact/opendact/opendact_eeprom.h \
     test/Delta-Bed-Calibration-Tool/dbct.h \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.h \
     test/opendact/2dchart.h \
-    test/escher3d/newpoints.h \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact_calibration.h \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact_eeprom.h \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact_user_var.h \
-    test/Delta-Bed-Calibration-Tool/opendact/opendact.h
+    test/escher3d/newpoints.h
 
 RESOURCES += \
     gui/images/images.qrc
