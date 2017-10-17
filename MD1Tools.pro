@@ -8,7 +8,7 @@ QT       += core gui serialport opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = MD1Config
+TARGET = MD1Tools
 TEMPLATE = app
 
 
@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     test/Delta-Bed-Calibration-Tool/dbct.cpp \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.cpp \
     test/opendact/2dchart.cpp \
-    test/escher3d/newpoints.cpp
+    test/escher3d/newpoints.cpp \
+    test/escher3d_wnd.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -65,7 +66,8 @@ HEADERS  += mainwindow.h \
     test/Delta-Bed-Calibration-Tool/dbct.h \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.h \
     test/opendact/2dchart.h \
-    test/escher3d/newpoints.h
+    test/escher3d/newpoints.h \
+    test/escher3d_wnd.h
 
 RESOURCES += \
     gui/images/images.qrc
@@ -78,7 +80,8 @@ FORMS += \
     test/eeprom_conf.ui \
     test/opendact/opendact_wnd.ui \
     test/opendact/heightmap_widget.ui \
-    test/Delta-Bed-Calibration-Tool/dbct_wnd.ui
+    test/Delta-Bed-Calibration-Tool/dbct_wnd.ui \
+    test/escher3d_wnd.ui
 
 #---------------  Qwt Plot3D  ----------------------------------
 #INCLUDEPATH += /usr/include/qwtplot3d-qt5
