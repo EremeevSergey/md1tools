@@ -114,7 +114,7 @@ CPlaneWindow::CPlaneWindow(QWidget *parent) :
 {
     setupUi(this);
     setWindowTitle("Height map.");
-    setWindowIcon(QIcon(":/images/alexanderb.png"));
+    setWindowIcon(QIcon(":/images/heightmap.png"));
     Plane = new CPlaneWidget();
     mainLayout->insertWidget(0,Plane,4);
     leCounts->setText(QString::number(Plane->count()));
