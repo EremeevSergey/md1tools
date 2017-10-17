@@ -38,7 +38,10 @@ SOURCES += main.cpp\
     test/Delta-Bed-Calibration-Tool/dbct_wnd.cpp \
     test/opendact/2dchart.cpp \
     test/escher3d/newpoints.cpp \
-    test/escher3d_wnd.cpp
+    test/Delta-Bed-Calibration-Tool/opendact/opendact_calibration.cpp \
+    test/Delta-Bed-Calibration-Tool/opendact/opendact_eeprom.cpp \
+    test/Delta-Bed-Calibration-Tool/opendact/opendact_user_var.cpp \
+    test/Delta-Bed-Calibration-Tool/opendact/opendact.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -67,7 +70,10 @@ HEADERS  += mainwindow.h \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.h \
     test/opendact/2dchart.h \
     test/escher3d/newpoints.h \
-    test/escher3d_wnd.h
+    test/Delta-Bed-Calibration-Tool/opendact/opendact_calibration.h \
+    test/Delta-Bed-Calibration-Tool/opendact/opendact_eeprom.h \
+    test/Delta-Bed-Calibration-Tool/opendact/opendact_user_var.h \
+    test/Delta-Bed-Calibration-Tool/opendact/opendact.h
 
 RESOURCES += \
     gui/images/images.qrc
@@ -80,8 +86,7 @@ FORMS += \
     test/eeprom_conf.ui \
     test/opendact/opendact_wnd.ui \
     test/opendact/heightmap_widget.ui \
-    test/Delta-Bed-Calibration-Tool/dbct_wnd.ui \
-    test/escher3d_wnd.ui
+    test/Delta-Bed-Calibration-Tool/dbct_wnd.ui
 
 #---------------  Qwt Plot3D  ----------------------------------
 #INCLUDEPATH += /usr/include/qwtplot3d-qt5
