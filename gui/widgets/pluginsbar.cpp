@@ -51,7 +51,8 @@ void CTaskBarSliderButton::paintEvent(QPaintEvent * event)
 void CTaskBarSliderButton::enterEvent(QEvent * event)
 {
     QFrame::enterEvent(event);
-    underMouse = true;
+    if (isEnabled()) underMouse = true;
+    else             underMouse = false;
     repaint();
 }
 
@@ -75,6 +76,7 @@ void CTaskBarSliderButton::Draw(QPainter *painter,const QRect& r)
 
 void CTaskBarSliderButton::mousePressEvent(QMouseEvent * event)
 {
+    QFrame::mousePressEvent(event);
     if (isEnabled()){
         if (event->button()==Qt::LeftButton)
             emit signalClicked();
@@ -167,6 +169,8 @@ CTaskBar::CTaskBar(QWidget* parent):QWidget(parent)
     l->addWidget(CentralWidget);
     l->addWidget(ButtonDown);
     setLayout(l);
+    connect(ButtonUp  ,SIGNAL(signalClicked()),SLOT(slotClicked()));
+    connect(ButtonDown,SIGNAL(signalClicked()),SLOT(slotClicked()));
 }
 
 CTaskBar::~CTaskBar()
@@ -196,18 +200,34 @@ void CTaskBar::resizeEvent(QResizeEvent * event)
 
 void CTaskBar::updateButtons()
 {
-    for (int i=0;i<Tasks.count();i++){
-        Tasks.at(i)->move(0,BUTTON_SIZE_Y*i-YOffset);
+    int totalHeight=Tasks.count()*BUTTON_SIZE_Y;
+    bool up = false,down=false;
+    if (totalHeight<CentralWidget->height())
+        YOffset = 0;
+    else{
+        if ((totalHeight-YOffset)>CentralWidget->height())
+            up = true;
+//        else if (YOffset>0)
+//            YOffset-=BUTTON_SIZE_Y/2;
+        if (YOffset>0)
+            down = true;
     }
+    ButtonUp  ->setEnabled(up);
+    ButtonDown->setEnabled(down);
+    for (int i=0;i<Tasks.count();i++)
+        Tasks.at(i)->move(0,BUTTON_SIZE_Y*i-YOffset);
 }
 
 void CTaskBar::slotClicked()
 {
     if (sender()==ButtonUp){
-
+            YOffset+=BUTTON_SIZE_Y/2;
+        updateButtons();
     }
     else if (sender()==ButtonDown){
-
+        YOffset-=BUTTON_SIZE_Y/2;
+        if (YOffset<0) YOffset=0;
+        updateButtons();
     }
     else {
         setActiveTask(Tasks.indexOf((CTaskBarButton*)(sender())));
