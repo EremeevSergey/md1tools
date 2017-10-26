@@ -5,9 +5,68 @@
 #include <QStringList>
 #include <QByteArray>
 #include <QTimerEvent>
+#include "printer_object.h"
 
+/*****************************************************************************\
+*                               CConnection                                   *
+*                       последовательный порт принтера                        *
+\*****************************************************************************/
+class CPrinter;
+class CConnection:public QObject, public CBasePrinterObject
+{
+    Q_OBJECT
+public:
+    enum EDirection{
+        Unknown =-1,
+        Input   = 0,
+        Output
+    };
+    enum EState{
+        StateClosed  = 0,
+        StateWaitStart,
+        StateWaitWait,
+        StateConnected
+    };
+    static char strInputFlag [];
+    static char strOutputFlag[];
+    static QStringList getSerialPortList();
+public:
+    CConnection(CPrinter *parent);
+    ~CConnection();
+    bool           open       ();
+    bool           close      ();
+    bool           isOpened   (){return State==StateConnected;}
+    bool           isDataReady() {return InputBuffer.size()>1;}
+    QString        readLine   ();
+    bool           writeLine(const QByteArray& data);
+    bool           writeLine(const char* data)   {return writeLine(QByteArray(data,strlen(data)));}
+    bool           writeLine(const QString& data){return writeLine(data.toLocal8Bit());}
 
-class CConnection:public QObject
+public:
+    bool           setSerialPortBaudRate(qint32 br);
+    inline qint32  getSerialPortBaudRate(){return SerialPortBaudRate;}
+    bool           setSerialPortName    (const QString& name);
+    inline QString getSerialPortName    (){return SerialPortName;}
+protected:
+    EState        State;
+    void          clearInputBuffer();
+private:
+    QSerialPort*  SerialPort;
+    qint32        SerialPortBaudRate;
+    QStringList   InputBuffer;
+    QString       SerialPortName;
+protected slots:
+    void          slotDataRecieved();
+    void          handleError(QSerialPort::SerialPortError error);
+signals:
+    void          signalOpened   ();  // Сигнал "Соединение установлено"
+    void          signalClosed   ();  // Сигнал "Соединение разорвано"
+    void          signalDataReady();  // Сигнал "Входящие данные готовы"
+    void          signalAddToLog (EDirection direction,
+                                  const QString& string); // Сигнал Вывода входящих строк в консоль (лог)
+};
+
+/*class CConnection:public QObject
 {
     Q_OBJECT
 public:
@@ -51,5 +110,5 @@ signals:
 private slots:
     void        slotDataRecieved();
 };
-
+*/
 #endif // CONNECTION_H

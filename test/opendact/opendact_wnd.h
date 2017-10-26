@@ -64,11 +64,6 @@ private slots:
     void onInputPushButtonClicked(CHeightmapWidget::EBushButtons but);
     void on_sendEepromMan_clicked();
     void slotNewPosition(const TVertex& ver);
-protected:
-    bool wasSet;
-    void activeLoopOld ();
-    void positionFlowOld    ();
-    void handleInput(const QString& message, bool canMove);
 };
 
 #endif // OPENDACT_WND_H

@@ -3,57 +3,91 @@
 #include <QStringList>
 #include "connection.h"
 #include "eeprom.h"
+#include "extruder.h"
 #include "../types.h"
 
-class CPrinter:public QObject
+/*
+Printer:
+   Connection
+   EEPROM
+   Extruder
+   Bed
+*/
+
+class CPrinter:public QObject, public CBasePrinterObject
 {
     Q_OBJECT
 public:
-    static   char TaskName[];
+    static double getDoubleParameter(const QString &line, const QString& name);
 
     enum EState{
-        Ready=0,
-        WaitStart,
-        WaitWait,
-        ScriptPlaying
+        PStateAbsent=0,
+        PStateReady,
+        PStateProcessCommand,
+        PStateScriptPlaying,
+        PStateReadEeprom,
+        PStateReadInfo
     };
 
     CPrinter(QObject* parent=0);
     ~CPrinter();
 
 public:
-    CConnection* Connection;
-    CEeProm*     EEPROM;
-    TVertex      CurrentPosition;
-    TVertex      ZProbe;
+    CConnection*  Connection;
+    CEeProm*      EEPROM;
+//    CExtruderSet* Extruders;
+    TVertex       CurrentPosition;
+    TVertex       ZProbe;
 public:
-    void        clearLog       ();
-public:
-    void        sendCmd           (const QString& cmd,bool wait);
-    void        cmdGoHomeAll      ();
-    void        cmdGoToXYZ        (double x,double y, double z);
-    void        cmdGetZProbeValue ();
-    void        emergencyReset();
-    void        playScript (const QStringList& list);
+    bool        isReady            (){return State==PStateReady;}
+    void        sendCmd            (const QString& cmd,bool wait);
+    void        sendGoHomeAll      ();
+    void        sendGoToXYZ        (double x,double y, double z);
+    void        sendGetZProbeValue ();
+    void        sendEmergencyReset ();
+    void        sendScript         (const QStringList&    list);
+    void        sendScript         (const CPrinterScript& list);
+    void        setErrorString     (const QString& str,CBasePrinterObject* sender);
 protected:
-    QStringList LogBuffer;
-    bool        processinCommand;
-    EState      State;
-    QStringList Script;
-    int         currentScriptLine;
-
+    EPrinterCommands CurrentCommandType;
+    EState           State;
+    bool             waitWait;
+    CPrinterScript   Script;
+protected:
+    bool        parsePrinterAnswer(const QString& input,EPrinterCommands cmd_type);
+    void        processOk         ();
+    void        processWait       ();
+    bool        __sendScriptLine   (EPrinterCommands cmd_type);
+    bool        __sendCommand      (const QString&     cmd_string,
+                                    EPrinterCommands   cmd_type,
+                                    bool wait);
+    bool        __sendCommands     (const CPrinterScript& cmd_string,
+                                    EPrinterCommands cmd_type);
 signals:
-    void        signalCommandExecuted ();
-    void        signalBusy       (const QString&);
-    void        signalReady      (const QString&);
-    void        signalNewPosition(const TVertex& ver);
+    void        signalBusy             (const QString&);
+    void        signalReady            (const QString&);
+    void        signalNewPositionReady (const TVertex& ver);
 protected slots:
     void        slotOpened    ();
     void        slotClosed    ();
-    void        slotAddToLog  (const QString& str);
     void        slotDataReady ();
+
+
+
+
 public:
-    static double getDoubleParameter(const QString &line, const QString& name);
+//    void        clearLog       ();
+
+protected:
+//    QStringList LogBuffer;
+    bool        processinCommand;
+    int         currentScriptLine;
+
+signals:
+//    void        signalCommandExecuted ();
+protected slots:
+//    void        slotAddToLog  (const QString& str);
+public:
 };
 
 #endif // PRINTER_H

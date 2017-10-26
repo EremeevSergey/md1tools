@@ -53,8 +53,8 @@ void MainWindow::createUi     ()
     logView = new CLogView(this);
     addDockWidget(Qt::BottomDockWidgetArea,logView);
     connect(Printer.Connection,SIGNAL(signalAddToLog(QString)),logView,SLOT(slotAddLine(QString)));
-    connect (Printer.EEPROM,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
-    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
+//--    connect (Printer.EEPROM,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
+//--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
     connect (&Printer,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
     connect (&Printer,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
     connect(taskBar,SIGNAL(signalTaskSelect(QString)),this,SLOT(slotSetActiveTask(QString)));
@@ -96,7 +96,7 @@ void MainWindow::createMenus()
     pmenu->addSeparator();
     pmenu->addAction(actSetup);
     pmenu->addSeparator();
-    pmenu->addAction(tr("Выход"),qApp,SLOT(closeAllWindows()),QKeySequence("CTRL+Q"));
+    pmenu->addAction(tr("Exit"),qApp,SLOT(closeAllWindows()),QKeySequence("CTRL+Q"));
     menuBar()->addMenu(pmenu);
 }
 
@@ -111,7 +111,7 @@ void MainWindow::updateActions()
     bool fl = Printer.Connection->isOpened();
     actOpenPort->setEnabled(!fl);
     actClosePort->setEnabled(fl);
-    centralWindow->setEnabled(fl);
+//    centralWindow->setEnabled(fl);
 }
 
 void MainWindow::slotUpdate   ()
@@ -137,7 +137,7 @@ void MainWindow::slotSetup    ()
     if (dlg.exec()==QDialog::Accepted){
         Config.PortName = dlg.getSerialPortName();
         Config.BaudRate = dlg.getSerialBaudRate();
-        Printer.Connection->setSerialPort(Config.PortName);
+        Printer.Connection->setSerialPortName(Config.PortName);
         Printer.Connection->setSerialPortBaudRate(Config.BaudRate);
     }
 }
@@ -221,7 +221,7 @@ bool MainWindow::isTaskPresent(const QString& name)
 
 void MainWindow::slotReset()
 {
-    Printer.emergencyReset();
+    Printer.sendEmergencyReset();
     Printer.Connection->close();
     int count = centralWindow->layout()->count();
     if (count){

@@ -1,6 +1,80 @@
 #include <QStringList>
 #include "eeprom.h"
 
+/*****************************************************************************\
+*                                  CEeProm                                    *
+*                                Класс EEPROM                                 *
+\*****************************************************************************/
+CEeProm::CEeProm(CBasePrinterObject *parent):
+    CBasePrinterObject(parent)
+{
+    Name = "EEPROM";
+}
+
+CEeProm::CEeProm(const CEePromList& other, CBasePrinterObject *parent) :
+    CBasePrinterObject(parent),CEePromList(other)
+{
+}
+
+bool CEeProm::read  ()
+{
+    clear();
+    if (ParentObject)
+        return ParentObject->__sendCommand("M205",EPrinterCommandsM205,true);
+    return false;
+}
+
+bool CEeProm::parsePrinterAnswer(const QString& input,EPrinterCommands cmd_type)
+{
+    if (cmd_type==EPrinterCommandsM205){
+        CEePromRecord* r = new CEePromRecord();
+        if (r->FromString(input)) {
+            ValueList.append(r);
+            return true;
+        }
+        else
+            delete r;
+    }
+    return false;
+}
+
+bool CEeProm::write ()
+{
+    if (ParentObject){
+        CPrinterScript script;
+        for (int i=0,n=ValueList.count();i<n;i++){
+            script.append(ValueList.at(i)->ToCmdString(),false);
+        }
+        if (ParentObject)
+            return ParentObject->__sendCommands(script,EPrinterCommandsM206);
+    }
+    return false;
+}
+
+bool CEeProm::writeParameter(int index)
+{
+    if (ParentObject && index>=0 && index<ValueList.size()){
+        CEePromRecord* r = ValueList.at(index);
+        if (r && ParentObject)
+            return ParentObject->__sendCommand(r->ToCmdString(),EPrinterCommandsM206,false);
+    }
+    return false;
+}
+
+bool CEeProm::writeParameter(const QString& name)
+{
+    for (int i=0,n=ValueList.size();i<n;i++){
+        CEePromRecord* r = ValueList.at(i);
+        if (r && r->Description==name && ParentObject)
+            return ParentObject->__sendCommand(r->ToCmdString(),EPrinterCommandsM206,false);
+    }
+    return false;
+}
+
+/*****************************************************************************\
+*                               CEePromRecord                                 *
+*                         Класс одной записи EEPROM                           *
+\*****************************************************************************/
 CEePromRecord::CEePromRecord()
 {
     Type = Unknown;
@@ -126,8 +200,12 @@ bool CEePromRecord::FromString(const QString& str)
     return false;
 }
 
+
+
+
 /*****************************************************************************\
 *                                CEePromList                                  *
+*                        Класс списка значений EEPROM                         *
 \*****************************************************************************/
 
 CEePromList::CEePromList()
@@ -237,120 +315,4 @@ bool CEePromList::setParameterValue(int index,float val)
     return false;
 }
 
-/*****************************************************************************\
-*                                  CEeProm                                    *
-\*****************************************************************************/
-char CEeProm::TaskName[] = "EEPROM.internal";
 
-
-CEeProm::CEeProm(CPrinter *parent) :
-    QObject(parent), CEePromList()
-{
-    Busy = Ready;
-    Printer = parent;
-    connect(Printer->Connection,SIGNAL(signalAddToLog(QString)),SLOT(slotAnswer(QString)));
-}
-
-CEeProm::CEeProm(const CEePromList& other,CPrinter *parent) :
-    QObject(parent),CEePromList(other)
-{
-    Busy = Ready;
-    Printer = parent;
-    connect(Printer->Connection,SIGNAL(signalAddToLog(QString)),SLOT(slotAnswer(QString)));
-}
-
-bool CEeProm::read  ()
-{
-    if (Busy==Ready && Printer->Connection->isOpened()){
-        emit signalBusy (TaskName);
-        clear();
-        Printer->Connection->writeLine("M205");
-        Busy = ReadAll;
-        return true;
-    }
-    return false;
-}
-
-void CEeProm::slotAnswer (const QString& str)
-{
-    if (Busy != Ready){
-        CConnection::Direction dir;
-        QString s = CConnection::logStringToString(str,&dir);
-        if (dir == CConnection::Input){
-            if (s.trimmed().toLower() == "wait"){
-                // Command Executed
-                Busy = Ready;
-                emit signalReady (TaskName);
-            }
-            CEePromRecord* r;
-            switch (Busy) {
-            case ReadAll:
-                r = new CEePromRecord();
-                if (r->FromString(s)) ValueList.append(r);
-                else delete r;
-                break;
-//            case WriteAll:
-//                ParameterIndex++;
-//                if (ParameterIndex<ValueList.size())
-//                    Printer->Connection->writeLine(ValueList.at(ParameterIndex)->ToCmdString());
-//                else{
-//                    // Command Executed
-//                    Busy = Ready;
-//                    emit signalReady (TaskName);
-//                }
-//                break;
-            default:
-                break;
-            }
-        }
-    }
-}
-
-bool CEeProm::write ()
-{
-    if (Busy==Ready && Printer->Connection->isOpened()){
-//        if (ValueList.size()>0){
-//            emit signalBusy (TaskName);
-//            ParameterIndex = 0;
-//            Printer->Connection->writeLine(ValueList.at(0)->ToCmdString());
-//            Busy = WriteAll;
-//        }
-        QStringList script;
-        for (int i=0,n=ValueList.count();i<n;i++){
-            script.append(ValueList.at(i)->ToCmdString());
-        }
-        Printer->playScript(script);
-        return true;
-    }
-    return false;
-}
-
-bool CEeProm::writeParameter(int index)
-{
-    if (index>=0 && index<ValueList.size()){
-        CEePromRecord* r = ValueList.at(index);
-        if (r){
-            emit signalBusy (TaskName);
-            Printer->Connection->writeLine(r->ToCmdString());
-            Busy = WriteOne;
-            return true;
-        }
-    }
-    return false;
-}
-
-bool CEeProm::writeParameter   (const QString& name)
-{
-    for (int i=0,n=ValueList.size();i<n;i++){
-        CEePromRecord* r = ValueList.at(i);
-        if (r){
-            if (r->Description==name){
-                emit signalBusy (TaskName);
-                Printer->Connection->writeLine(r->ToCmdString());
-                Busy = WriteOne;
-                return true;
-            }
-        }
-    }
-    return false;
-}

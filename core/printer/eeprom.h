@@ -102,6 +102,12 @@ EPR:3 246 0.000 Extr.1 advance L [0=off]
 
 */
 
+
+#include "printer_object.h"
+/*****************************************************************************\
+*                               CEePromRecord                                 *
+*                         Класс одной записи EEPROM                           *
+\*****************************************************************************/
 class CEePromRecord
 {
 public:
@@ -145,19 +151,13 @@ public:
 
 /*****************************************************************************\
 *                                CEePromList                                  *
+*                        Класс списка значений EEPROM                         *
 \*****************************************************************************/
 class CEePromList
 {
 public:
-    enum EState{
-        Ready = 0,
-        ReadAll,
-        WriteAll,
-        WriteOne
-    };
-
-    explicit CEePromList();
-    explicit CEePromList(const CEePromList &other);
+    CEePromList ();
+    CEePromList (const CEePromList &other);
     ~CEePromList();
     void           clear();
     int            count()const{return  ValueList.count();}
@@ -172,35 +172,22 @@ protected:
     QList<CEePromRecord*> ValueList;
 };
 
-
 /*****************************************************************************\
 *                                  CEeProm                                    *
+*                                Класс EEPROM                                 *
 \*****************************************************************************/
-class CPrinter;
-
-class CEeProm : public QObject,public CEePromList
+class CEeProm : public CBasePrinterObject,public CEePromList
 {
-    Q_OBJECT
 public:
-    static   char TaskName[];
-
-    explicit CEeProm(CPrinter *parent);
-    explicit CEeProm(const CEePromList &other, CPrinter *parent);
-    bool           read  ();
-    bool           write ();
-    bool           writeParameter   (int index);
-    bool           writeParameter   (const QString& name);
+    CEeProm(CBasePrinterObject *parent);
+    CEeProm(const CEePromList &other, CBasePrinterObject* parent);
+    bool       read  ();
+    bool       write ();
+    bool       writeParameter    (int index);
+    bool       writeParameter    (const QString& name);
+    bool       parsePrinterAnswer(const QString& input,EPrinterCommands cmd_type);
 protected:
-    EState                Busy;
-    CPrinter*             Printer;
-    int                   ParameterIndex;
-signals:
-    void          signalBusy (const QString&);
-    void          signalReady(const QString&);
-public slots:
-    void          slotAnswer (const QString& str);
-
+//    int            ParameterIndex;
 };
 
-#include "printer.h"
 #endif // EEPROM_H

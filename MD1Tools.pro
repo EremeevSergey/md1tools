@@ -31,14 +31,18 @@ SOURCES += main.cpp\
     test/escher3d/escher3d.cpp \
     test/opendact/opendact_wnd.cpp \
     test/opendact/heightmap_widget.cpp \
+    test/opendact/opendact/opendact.cpp \
+    test/opendact/opendact/opendact_user_var.cpp \
+    test/opendact/opendact/opendact_eeprom.cpp \
     test/Delta-Bed-Calibration-Tool/dbct.cpp \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.cpp \
     test/opendact/2dchart.cpp \
     test/escher3d/newpoints.cpp \
-    test/opendact/opendact/opendact_calibration.cpp \
-    test/opendact/opendact/opendact_eeprom.cpp \
-    test/opendact/opendact/opendact_user_var.cpp \
-    test/opendact/opendact/opendact.cpp
+    core/printer/extruder.cpp \
+    core/printer/printer_object.cpp \
+    core/printer/commands.cpp \
+    test/control/control_wnd.cpp \
+    gui/widgets/bed_widget.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -60,14 +64,18 @@ HEADERS  += mainwindow.h \
     test/escher3d/escher3d.h \
     test/opendact/opendact_wnd.h \
     test/opendact/heightmap_widget.h \
+    test/opendact/opendact/opendact.h \
+    test/opendact/opendact/opendact_user_var.h \
+    test/opendact/opendact/opendact_eeprom.h \
     test/Delta-Bed-Calibration-Tool/dbct.h \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.h \
     test/opendact/2dchart.h \
     test/escher3d/newpoints.h \
-    test/opendact/opendact/opendact_calibration.h \
-    test/opendact/opendact/opendact_eeprom.h \
-    test/opendact/opendact/opendact_user_var.h \
-    test/opendact/opendact/opendact.h
+    core/printer/extruder.h \
+    core/printer/printer_object.h \
+    core/printer/commands.h \
+    test/control/control_wnd.h \
+    gui/widgets/bed_widget.h
 
 RESOURCES += \
     gui/images/images.qrc
@@ -80,7 +88,8 @@ FORMS += \
     test/eeprom_conf.ui \
     test/opendact/opendact_wnd.ui \
     test/opendact/heightmap_widget.ui \
-    test/Delta-Bed-Calibration-Tool/dbct_wnd.ui
+    test/Delta-Bed-Calibration-Tool/dbct_wnd.ui \
+    test/control/control_wnd.ui
 
 #---------------  Qwt Plot3D  ----------------------------------
 #INCLUDEPATH += /usr/include/qwtplot3d-qt5

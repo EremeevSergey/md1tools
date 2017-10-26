@@ -34,7 +34,7 @@ void CDeltaBedCalibrationTools::activeLoop    ()
         // Считили ЕЕПРОМ. Сохраняем начальные условия
         readEeprom();
         currentHeightIndex=0;
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
         teLog->appendPlainText(PrinterConfig.toString());
         step = GoHome;
         break;
@@ -45,11 +45,11 @@ void CDeltaBedCalibrationTools::activeLoop    ()
         break;
     case GoToXYZ:
         // Измеряем расстояние до стола
-        Printer.cmdGetZProbeValue();
+        Printer.sendGetZProbeValue();
         step = ZProbe;
         break;
     case ExecuteCommand:
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
         step = GoHome;
         break;
     case Process:
@@ -73,7 +73,7 @@ void CDeltaBedCalibrationTools::activeLoop    ()
             if (currentHeightIndex>5){
                 // промерили всё
                 // пока стоп
-                Printer.playScript(PrepareScript());
+                Printer.sendScript(PrepareScript());
                 step = Process;
             }
             else{
@@ -145,7 +145,7 @@ void CDeltaBedCalibrationTools::activeLoop    ()
                                                arg(QString::number(record.FValue,'f',3)));
                     }
                 }
-                Printer.playScript(script);
+                Printer.sendScript(script);
                 step = ExecuteCommand;
             }
         }
@@ -881,7 +881,7 @@ bool CDeltaBedCalibrationTools::gotoxyz ()
     }
     else return false;
     step = GoToXYZ;
-    Printer.cmdGoToXYZ(x,y,z);
+    Printer.sendGoToXYZ(x,y,z);
     return true;
 }
 
@@ -976,7 +976,7 @@ CDeltaBedCalibrationTools::CDeltaBedCalibrationTools(QWidget *parent) :
     TestProbeStartOffset = TEST_PROBE_START_OFFSET;
     connect (&Printer,SIGNAL(signalCommandExecuted()),this,SLOT(slotCommandExecuted()));
     connect (&Printer      ,SIGNAL(signalReady(QString)),this,SLOT(slotReady(QString)));
-    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),this,SLOT(slotReady(QString)));
+//--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),this,SLOT(slotReady(QString)));
 }
 
 CDeltaBedCalibrationTools::~CDeltaBedCalibrationTools()

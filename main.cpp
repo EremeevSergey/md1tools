@@ -6,19 +6,21 @@
 #include "test/opendact/opendact_wnd.h"
 #include "test/terminal.h"
 #include "test/eeprom_conf.h"
+#include "test/control/control_wnd.h"
 #include "test/Delta-Bed-Calibration-Tool/dbct_wnd.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     Config.load();
-    Printer.Connection->setSerialPort(Config.PortName);
+    Printer.Connection->setSerialPortName(Config.PortName);
     Printer.Connection->setSerialPortBaudRate(Config.BaudRate);
 
     MainWindow w;
     w.resize(Config.WindowsWidth,Config.WindowsHeight);
 
     w.addTask(new CEepromConfiguration     ());
+    w.addTask(new CControlWindow           ());
     w.addTask(new CPlaneWindow             ());
     w.addTask(new CEscher3dWindow          ());
     w.addTask(new COpendactWnd             ());

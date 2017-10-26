@@ -8,7 +8,7 @@
 *                                                                             *
 \*****************************************************************************/
 extern double fsquare(double x);
-
+/*
 QVertexTableModel::QVertexTableModel(QObject * parent):QAbstractTableModel(parent)
 {
 }
@@ -89,7 +89,7 @@ QVariant QVertexTableModel::headerData(int section, Qt::Orientation orientation,
     }
     return QAbstractTableModel::headerData(section,orientation,role);
 }
-
+*/
 /*****************************************************************************\
 *                                                                             *
 *                                                                             *
@@ -563,7 +563,7 @@ void CEscher3dWindow::on_copyButton_clicked()
         Printer.EEPROM->setParameterValue(i,(float)(90.0 + deltaParams.zadj));
         script.append(Printer.EEPROM->at(i)->ToCmdString());
     }
-    Printer.playScript(script);
+    Printer.sendScript(script);
 }
 
 void CEscher3dWindow::updateControls()
@@ -608,7 +608,7 @@ void CEscher3dWindow::on_pbStart_clicked()
         currectVertexIndex = 0;
 //        Printer.Connection->writeLine("M321");
 //        Printer.Connection->writeLine("M322");
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
         updateControls();
     }
 }
@@ -638,7 +638,7 @@ void CEscher3dWindow::activeLoop()
         }
         break;
     case GoToXYZ:
-        Printer.cmdGetZProbeValue();
+        Printer.sendGetZProbeValue();
         step = ZProbe;
         break;
     case ZProbe:
@@ -677,7 +677,7 @@ bool CEscher3dWindow::gotoxyz ()
     int count = TableVertex->getSize();
     if (count>currectVertexIndex){
         step = GoToXYZ;
-        Printer.cmdGoToXYZ(TableVertex->getX(currectVertexIndex),
+        Printer.sendGoToXYZ(TableVertex->getX(currectVertexIndex),
                            TableVertex->getY(currectVertexIndex),
                            dsbHeight->value());
         return true;
@@ -746,7 +746,7 @@ void CEscher3dWindow::on_autoCheckBox_clicked()
 void CEscher3dWindow::on_homeAllButton_clicked()
 {
     TableVertex->uncheckButtons();
-    Printer.cmdGoHomeAll();
+    Printer.sendGoHomeAll();
     currectVertexIndex = -1;
     updateControls();
 }
@@ -755,7 +755,7 @@ void CEscher3dWindow::slotBPCliked(int code)
 {
     qDebug() << "void CEscher3dWindow::slotBPCliked(int code)";
     currectVertexIndex = code;
-    Printer.cmdGoToXYZ(TableVertex->getX(currectVertexIndex),
+    Printer.sendGoToXYZ(TableVertex->getX(currectVertexIndex),
                        TableVertex->getY(currectVertexIndex),
                        dsbHeight->value());
     updateControls();

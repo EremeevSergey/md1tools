@@ -2,25 +2,42 @@
 #include <QSerialPortInfo>
 #include <QList>
 #include <QDebug>
+#include <QMessageBox>
 
 #define TIME_OUT_CONNECTION_MS 1000*60
 
-char CConnection::strInputFlag []="IN:";
-char CConnection::strOutputFlag[]="OUT:";
+#include "printer.h"
 
-
-CConnection::CConnection(QObject *parent):QObject(parent)
+QStringList CConnection::getSerialPortList()
 {
-    SerialPort.setBaudRate(115200);
-    SerialPort.setDataBits(QSerialPort::Data8);
-    SerialPort.setParity(QSerialPort::EvenParity);
-    SerialPort.setFlowControl(QSerialPort::NoFlowControl);
-    SerialPort.setStopBits(QSerialPort::TwoStop);
-    connect(&SerialPort,SIGNAL(readyRead()),this,SLOT(slotDataRecieved()));
+    QStringList ret;
+    QList<QSerialPortInfo> list = QSerialPortInfo::availablePorts();
+    for (int i=0,n=list.size();i<n;i++)
+        ret.append(list.at(i).portName());
+    return ret;
+}
+
+CConnection::CConnection(CPrinter *parent):
+    QObject(parent), CBasePrinterObject(parent)
+{
+    Name = "Connection";
+    SerialPort = new QSerialPort();
+    State = StateClosed;
+    SerialPortBaudRate = 115200;
     clearInputBuffer();
-    flConnected       = false;
-    flStartConnection = false;
-    TimerId     = 0;
+//    connect(SerialPort, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
+//            &MainWindow::handleError);
+
+    connect(SerialPort,SIGNAL(error(QSerialPort::SerialPortError)),
+//                static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error)),
+            SLOT(handleError(QSerialPort::SerialPortError)));
+    connect(SerialPort,SIGNAL(readyRead()),SLOT(slotDataRecieved()));
+
+}
+
+CConnection::~CConnection()
+{
+    delete SerialPort;
 }
 
 void CConnection::clearInputBuffer()
@@ -29,91 +46,114 @@ void CConnection::clearInputBuffer()
     InputBuffer << "";
 }
 
-QStringList CConnection::getSerialPortList()
+bool CConnection::setSerialPortBaudRate(qint32 br)
 {
-    QStringList ret;
-    QList<QSerialPortInfo> list = QSerialPortInfo::availablePorts();
-    for (int i=0,n=list.size();i<n;i++){
-        ret.append(list.at(i).portName());
+    SerialPortBaudRate = br;
+    if (State==StateConnected){
+        if (!SerialPort->setBaudRate(SerialPortBaudRate,QSerialPort::AllDirections)){
+            ParentObject->setErrorString(SerialPort->errorString(),this);
+            return false;
+        }
+    return true;
     }
-    return ret;
+    return false;
 }
 
-QString CConnection::logStringToString(const QString& in,Direction* dir)
+bool CConnection::setSerialPortName (const QString& name)
 {
-    if (in.startsWith(strInputFlag)){
-        if (dir) *dir = Input;
-        return in.right(in.length()-strlen(strInputFlag));
-    }
-    else if (in.startsWith(strOutputFlag)){
-        if (dir) *dir = Output;
-        return in.right(in.length()-strlen(strOutputFlag));
-    }
-    else{
-        if (dir) *dir = Unknown;
-        return in;
-    }
-
+    SerialPortName = name;
+    SerialPort->setPortName(name);
+    return true;
 }
 
 bool CConnection::open()
 {
-    if (!(flConnected | flStartConnection)){
-        SerialPort.clearError();
-        if (SerialPort.open(QIODevice::ReadWrite)){
+    if (State == StateClosed){
+        SerialPort->clearError();
+        if (SerialPort->open(QIODevice::ReadWrite) &&
+            SerialPort->setBaudRate(SerialPortBaudRate,QSerialPort::AllDirections)){
             clearInputBuffer();
-            flConnected       = false;
-            flStartConnection = true;
-            TimerId = startTimer(TIME_OUT_CONNECTION_MS);
+            State = StateWaitStart;
+            //            TimerId = startTimer(TIME_OUT_CONNECTION_MS);
+            InputBuffer.clear();
             return true;
         }
-        qDebug() << SerialPort.errorString();
+        else{
+            if (ParentObject){
+                ParentObject->setErrorString(SerialPort->errorString(),this);
+            }
+        }
     }
     return false;
 }
-
 
 bool CConnection::close()
 {
-    if (flConnected | flStartConnection){
-        SerialPort.clearError();
-        SerialPort.close();
-        if (SerialPort.error()==QSerialPort::NoError){
-            flConnected       = false;
-            flStartConnection = false;
-            if (TimerId) killTimer(TimerId);
-            emit signalClosed();
-            return true;
+    bool ret = false;
+    if (State!=StateConnected){
+        SerialPort->clearError();
+        SerialPort->close();
+        if (SerialPort->error()==QSerialPort::NoError){
+            ret = true;
         }
+        else{
+            ParentObject->setErrorString(SerialPort->errorString(),this);
+        }
+        State = StateClosed;
+        emit signalClosed();
     }
-    return false;
+    return ret;
 }
 
-
-bool CConnection::setSerialPort(const QString& name)
+void CConnection::handleError(QSerialPort::SerialPortError error)
 {
-    if (!(flConnected | flStartConnection)){
-        SerialPort.setPortName(name);
-        return true;
+    if (error == QSerialPort::ResourceError) {
+        QMessageBox::critical(0,tr("Critical Error"), SerialPort->errorString());
+        close();
     }
-    return false;
 }
 
-bool CConnection::setSerialPortBaudRate(qint32 br)
+void CConnection::slotDataRecieved()
 {
-    if (!(flConnected | flStartConnection))
-        return SerialPort.setBaudRate(br);
-    return false;
-}
+    if (State!=StateClosed){
+        // Разбиваем полученные данные на строки
+        QByteArray in = SerialPort->readAll();
+        for (int i=0,n=in.size();i<n;i++){
+            char ch = in.at(i);
+            if (ch=='\n'){
+                emit signalAddToLog(Input,InputBuffer.last());
+                InputBuffer << "";
+            }
+            else if (ch>=0x20)
+                InputBuffer.last()+=QChar(ch);
+        }
+        // Разбили на строки
+        switch (State) {
+        case StateWaitStart:
+        case StateWaitWait:
+            while (InputBuffer.size()>1){
+                QString s = InputBuffer.first().toLower();
+                InputBuffer.removeFirst();
+                if (State == StateWaitStart){
+                    if (s=="start") State = StateWaitWait;
+                }
+                else if (State == StateWaitWait){
+                    if (s=="wait") {
+                        State = StateConnected;
+                        emit signalOpened ();
+                        break;
+                    }
+                }
+            }
+            break;
+        case StateConnected:
+            if (InputBuffer.size()>1)  signalDataReady();
+            break;
+        default:
+            break;
+        }
 
-bool CConnection::isDataReady()
-{
-    return InputBuffer.size()>1;
-//    int size=0;
-//    for (int i=0,n=InputBuffer.size();i<n;i++)
-//        size+= InputBuffer.at(i).size();
-//    if (size>0) return true;
-//    return false;
+    }
 }
 
 QString CConnection::readLine()
@@ -123,63 +163,17 @@ QString CConnection::readLine()
         ret = InputBuffer.first();
         InputBuffer.removeFirst();
     }
-//    if (InputBuffer.isEmpty())
-//        InputBuffer<<"";
     return ret;
 }
 
 bool CConnection::writeLine(const QByteArray& data)
 {
-    if (flConnected){
-        qint64 size=SerialPort.write(data+"\r\n");
+    if (State!=StateClosed){
+        qint64 size=SerialPort->write(data+"\r\n");
         if (size>0)
-            emit signalAddToLog(QString(strOutputFlag)+QString(data.left(size)));
+            emit signalAddToLog(Output,QString(data.left(size)));
         if (size==data.size()) return true;
     }
     return false;
-}
-
-void CConnection::slotDataRecieved()
-{
-    // Получили входные данные
-    if (flStartConnection){
-        flConnected = true;
-        flStartConnection = false;
-        emit signalOpened();
-    }
-    if (TimerId) killTimer(TimerId); // Сбрасываем таймер таймаута
-    QByteArray in = SerialPort.readAll();
-    int count=0;
-    for (int i=0,n=in.size();i<n;i++){
-        char ch = in.at(i);
-        if (ch=='\n'){
-//            if (InputBuffer.last()=="wait"){
-//                count-=InputBuffer.last().size();
-//                if (count<0) count=0;
-//                InputBuffer.last().clear();
-//            }
-//            else{
-                InputBuffer << "";
-                count++;
-//            }
-        }
-        else if (ch>=0x20){
-            InputBuffer.last()+=QChar(ch);
-            count++;
-        }
-    }
-    if (count>0){
-        for (int i=0,n=InputBuffer.size()-1;i<n;i++){
-            emit signalAddToLog(QString(strInputFlag)+InputBuffer.at(i));
-        }
-        emit signalDataReady();
-    }
-    TimerId = startTimer(TIME_OUT_CONNECTION_MS);
-}
-
-void CConnection::timerEvent(QTimerEvent *event)
-{
-    Q_UNUSED(event);
-    close();
 }
 

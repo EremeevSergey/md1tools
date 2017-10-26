@@ -120,18 +120,18 @@ Custom M Codes
 - M908 P<address> S<value> : Set stepper current for digipot (RAMBO board)
 - M999 - Continue from fatal error. M999 S1 will create a fatal error for testing.
 */
-char CPrinter::TaskName[] = "Printer.internal";
+//char CPrinter::TaskName[] = "Printer";
 
-CPrinter::CPrinter(QObject *parent):QObject(parent)
+CPrinter::CPrinter(QObject *parent):QObject(parent),CBasePrinterObject(0)
 {
-    Connection = new CConnection(this);
-    EEPROM = new CEeProm(this);
-    processinCommand = false;
-    State = Ready;
-    connect(Connection,SIGNAL(signalOpened())         ,this,SLOT(slotOpened()));
-    connect(Connection,SIGNAL(signalClosed())         ,this,SLOT(slotClosed()));
-    connect(Connection,SIGNAL(signalAddToLog(QString)),this,SLOT(slotAddToLog(QString)),Qt::QueuedConnection);
-    connect(Connection,SIGNAL(signalDataReady())      ,this,SLOT(slotDataReady()),Qt::QueuedConnection);
+    Connection     = new CConnection(this);
+    EEPROM         = new CEeProm(this);
+    CurrentCommandType = EPrinterCommandsNone; // Команда не обрабатывается
+    State          = PStateAbsent;         // Принтер не доступен
+    waitWait       = false;                // Не дожидаться wait
+    connect(Connection,SIGNAL(signalOpened   ()),SLOT(slotOpened   ()),Qt::QueuedConnection);
+    connect(Connection,SIGNAL(signalClosed   ()),SLOT(slotClosed   ()),Qt::QueuedConnection);
+    connect(Connection,SIGNAL(signalDataReady()),SLOT(slotDataReady()),Qt::QueuedConnection);
 }
 
 CPrinter::~CPrinter()
@@ -141,72 +141,225 @@ CPrinter::~CPrinter()
     delete Connection;
 }
 
-
-void CPrinter::clearLog()
+bool CPrinter::__sendCommand(const QString& cmd_string,EPrinterCommands cmd_type,bool wait)
 {
-    LogBuffer.clear();
+    bool ret=false;
+    if (State==PStateReady){
+        ret = Connection->writeLine(cmd_string);
+        if (ret){
+            CurrentCommandType=cmd_type;
+            State=PStateProcessCommand;
+            if (wait){
+                waitWait = true;
+                emit signalBusy(getName());
+            }
+        }
+
+    }
+    return ret;
+}
+
+bool CPrinter::__sendScriptLine(EPrinterCommands cmd_type)
+{
+    if (Script.size()>0){
+        QString cmd_string = Script.first().Command;
+        bool   wait = Script.first().Wait;
+        Script.removeFirst();
+        bool ret = Connection->writeLine(cmd_string);
+        if (ret){
+            CurrentCommandType=cmd_type;
+            if (wait)
+                waitWait = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CPrinter::__sendCommands(const CPrinterScript &cmd_string, EPrinterCommands cmd_type)
+{
+    if (State==PStateReady){
+        Script = cmd_string;
+        if (__sendScriptLine(cmd_type)){
+            State=PStateScriptPlaying;
+            emit signalBusy(getName());
+            return true;
+        }
+    }
+    return false;
 }
 
 void CPrinter::slotOpened    ()
 {
-    processinCommand = false;
     ZProbe           = TVertex();
     CurrentPosition  = TVertex();
-    State = WaitStart;
-//    EEPROM->read();
+    State            = PStateReady;
+    CurrentCommandType   = EPrinterCommandsNone;
+    waitWait         = false;
+    __sendCommand("M115",EPrinterCommandsNone,true);
+    State            = PStateReadInfo;
 }
 
 void CPrinter::slotClosed    ()
 {
-    processinCommand = false;
+    State            = PStateAbsent;
     ZProbe           = TVertex();
     CurrentPosition  = TVertex();
 }
 
-void CPrinter::slotAddToLog(const QString& str)
+void CPrinter::sendScript (const QStringList& list)
 {
-    LogBuffer.append(str);
-    CConnection::Direction dir;
-    QString s = CConnection::logStringToString(str,&dir);
-    if (dir == CConnection::Input){
-        s = s.toLower();
-        switch (State) {
-        case WaitStart:
-            if (s=="start")
-                State = WaitWait;
-            break;
-        case WaitWait:
-            if (s=="wait"){
-                EEPROM->read();
-                State = Ready;
-            }
-            break;
-        case ScriptPlaying:
-            if (s=="wait"){
-                currentScriptLine++;
-                if (currentScriptLine<Script.count()){
-                    Connection->writeLine(Script.at(currentScriptLine));
-                }
-                else{
-                    State = Ready;
-                    emit signalReady(TaskName);
-                }
-            }
-            break;
-        default:
-            break;
+    __sendCommands(CPrinterScript(list),EPrinterCommandsNone);
+}
+
+void CPrinter::sendScript (const CPrinterScript& list)
+{
+    __sendCommands(list,EPrinterCommandsNone);
+}
+
+bool CPrinter::parsePrinterAnswer(const QString& input,EPrinterCommands cmd_type)
+{
+    if (!CBasePrinterObject::parsePrinterAnswer(input,cmd_type)){
+        // Если данные от Z-probe считываем их.
+        if (input.startsWith("z-probe:")){
+            ZProbe.X = getDoubleParameter(input,"x");
+            ZProbe.Y = getDoubleParameter(input,"y");
+            ZProbe.Z = getDoubleParameter(input,"z-probe");
+            return true;
+        }
+        // Если данные текущем положении сопла считываем их.
+        if (input.startsWith("x:") && input.contains("y:") && input.contains("z:")){
+            CurrentPosition.X = getDoubleParameter(input,"x");
+            CurrentPosition.Y = getDoubleParameter(input,"y");
+            CurrentPosition.Z = getDoubleParameter(input,"z");
+            emit signalNewPositionReady(CurrentPosition);
+            return true;
+        }
+        // Здесь можно будет обработать например сообщения об ошибках
+        return false;
+    }
+    else return true;
+}
+
+void  CPrinter::processOk ()
+{
+    switch (State) {
+    case PStateProcessCommand:
+        if (waitWait!=true)
+            State = PStateReady;
+        break;
+    case PStateScriptPlaying:
+        if (waitWait!=true && !__sendScriptLine(CurrentCommandType))
+            State = PStateReady;
+        break;
+    default:
+        break;
+    }
+}
+
+void CPrinter::processWait()
+{
+    switch (State) {
+    case PStateReadInfo:
+        // считали, считывам eeprom
+        EEPROM->read();
+        State = PStateReadEeprom;
+        break;
+    case PStateReadEeprom:
+        // считали, переходим в состояние готовности
+        State = PStateReady;
+        break;
+    case PStateProcessCommand:
+        State = PStateReady;
+        emit signalReady(getName());
+        break;
+    case PStateScriptPlaying:
+        if (!__sendScriptLine(CurrentCommandType)){
+            State = PStateReady;
+            emit signalReady(getName());
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void  CPrinter::slotDataReady()
+{
+    while(Connection->isDataReady()){
+        QString str = Connection->readLine().trimmed().toLower();
+        if (!parsePrinterAnswer(str,CurrentCommandType)){
+            // Детки не восприняли команду, обрабатываем сами
+            if      (str=="ok")   processOk ();
+            else if (str=="wait") processWait();
         }
     }
 }
 
-void CPrinter::playScript (const QStringList& list)
+//    while(Connection->isDataReady()){
+//        QString str = Connection->readLine().trimmed().toLower();
+//        if (processinCommand){
+//            if (str=="wait"){
+//                processinCommand = false;
+//                emit signalCommandExecuted();
+//            }
+//            else if (str.startsWith("z-probe:")){
+//                ZProbe.X = getDoubleParameter(str,"x");
+//                ZProbe.Y = getDoubleParameter(str,"y");
+//                ZProbe.Z = getDoubleParameter(str,"z-probe");
+//            }
+//        }
+//        if (str.startsWith("x:") && str.contains("y:") && str.contains("z:")){
+//            CurrentPosition.X = getDoubleParameter(str,"x");
+//            CurrentPosition.Y = getDoubleParameter(str,"y");
+//            CurrentPosition.Z = getDoubleParameter(str,"z");
+//            emit signalNewPosition(CurrentPosition);
+//        }
+//    }
+//}
+
+void CPrinter::sendCmd (const QString& cmd, bool wait)
 {
-    Script = list;
-    if (Script.size()>0){
-        currentScriptLine = 0;
-        State = ScriptPlaying;
-        emit signalBusy (TaskName);
-        Connection->writeLine(Script.at(0));
+    if (State==PStateReady){
+//        qDebug() << "+++++++++  cmd: " << cmd << " " << wait;
+        __sendCommand(cmd,EPrinterCommandsNone,wait);
+    }
+}
+
+void CPrinter::sendGoHomeAll ()
+{
+    if (State==PStateReady){
+//        qDebug() << "+++++++++  cmdGoHomeAll";
+//        Connection->writeLine("G28");
+        __sendCommand("G28",EPrinterCommandsNone,true);
+    }
+}
+
+void CPrinter::sendGoToXYZ        (double x,double y, double z)
+{
+    //   G1 X5.791 Y5.519 Z24
+    if (State==PStateReady){
+        CurrentPosition  = TVertex();
+        QString  str = QString("G1 X%1 Y%2 Z%3").arg(QString::number(x,'f',3),QString::number(y,'f',3),QString::number(z,'f',3));
+//        qDebug() << "+++++++++  cmdGoToXYZ: " << str;
+//        Connection->writeLine(str);
+        __sendCommand(str,EPrinterCommandsNone,true);
+    }
+}
+
+void CPrinter::sendGetZProbeValue ()
+{
+    if (State==PStateReady){
+        ZProbe = TVertex();
+//        Connection->writeLine("G30");// P2");
+        __sendCommand("G30",EPrinterCommandsNone,true);
+    }
+}
+
+void CPrinter::sendEmergencyReset()
+{
+    if (Connection->isOpened()){
+        __sendCommand("M112",EPrinterCommandsNone,false);
     }
 }
 
@@ -224,75 +377,13 @@ double CPrinter::getDoubleParameter(const QString& line,const QString& name)
     return qQNaN();
 }
 
-
-void  CPrinter::slotDataReady()
+void CPrinter::setErrorString (const QString& str, CBasePrinterObject *sender)
 {
-    while(Connection->isDataReady()){
-        QString str = Connection->readLine().trimmed().toLower();
-        if (processinCommand){
-            if (str=="wait"){
-                processinCommand = false;
-//                qDebug() << endl << "emit signalCommandExecuted()";
-                emit signalCommandExecuted();
-            }
-            else if (str.startsWith("z-probe:")){
-                ZProbe.X = getDoubleParameter(str,"x");
-                ZProbe.Y = getDoubleParameter(str,"y");
-                ZProbe.Z = getDoubleParameter(str,"z-probe");
-            }
-        }
-        if (str.startsWith("x:") && str.contains("y:") && str.contains("z:")){
-            CurrentPosition.X = getDoubleParameter(str,"x");
-            CurrentPosition.Y = getDoubleParameter(str,"y");
-            CurrentPosition.Z = getDoubleParameter(str,"z");
-            emit signalNewPosition(CurrentPosition);
-        }
+    QString name;
+    if (sender){
+        name = getName();
+        if (sender!=this)
+            name = QString("%1.%2").arg(name,sender->getName());
     }
-}
-
-void CPrinter::cmdGoHomeAll      ()
-{
-    if (!processinCommand && Connection->isOpened()){
-        processinCommand = true;
-//        qDebug() << "+++++++++  cmdGoHomeAll";
-        Connection->writeLine("G28");
-    }
-}
-
-void CPrinter::cmdGoToXYZ        (double x,double y, double z)
-{
-    //   G1 X5.791 Y5.519 Z24
-    if (!processinCommand && Connection->isOpened()){
-        processinCommand = true;
-        CurrentPosition  = TVertex();
-        QString  str = QString("G1 X%1 Y%2 Z%3").arg(QString::number(x,'f',3),QString::number(y,'f',3),QString::number(z,'f',3));
-//        qDebug() << "+++++++++  cmdGoToXYZ: " << str;
-        Connection->writeLine(str);
-    }
-}
-
-void CPrinter::sendCmd (const QString& cmd, bool wait)
-{
-    if (!processinCommand && Connection->isOpened()){
-        processinCommand = wait;
-//        qDebug() << "+++++++++  cmd: " << cmd << " " << wait;
-        Connection->writeLine(cmd);
-    }
-}
-
-void CPrinter::cmdGetZProbeValue ()
-{
-    if (!processinCommand && Connection->isOpened()){
-        processinCommand = true;
-        ZProbe           = TVertex();
-//        qDebug() << "+++++++++  Zprobe";
-        Connection->writeLine("G30");// P2");
-    }
-}
-
-void CPrinter::emergencyReset()
-{
-    if (Connection->isOpened()){
-    Connection->writeLine("M112");
-    }
+    qDebug() << name << ":" << str;
 }

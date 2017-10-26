@@ -31,7 +31,7 @@ void CPlaneWindow::on_pbStart_clicked()
 //        Printer.Connection->writeLine("M321");
 //        Printer.Connection->writeLine("M322");
 
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
     }
     else if (state==Active){
         state= WaitPaused;
@@ -87,7 +87,7 @@ void CPlaneWindow::activeLoop()
         }
         break;
     case GoToXYZ:
-        Printer.cmdGetZProbeValue();
+        Printer.sendGetZProbeValue();
         step = ZProbe;
         break;
     case ZProbe:
@@ -233,7 +233,7 @@ bool CPlaneWindow::gotoxyz()
         TVertex ver = Plane->at(currentVertexIndex);
         ver.Z = dsbHeight->value();
         step = GoToXYZ;
-        Printer.cmdGoToXYZ(ver.X,ver.Y,ver.Z);
+        Printer.sendGoToXYZ(ver.X,ver.Y,ver.Z);
         return true;
     }
     return false;

@@ -13,6 +13,7 @@
         <file>chip.png</file>
         <file>opendact.png</file>
         <file>stop_1.png</file>
+        <file>joystick.png</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

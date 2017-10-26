@@ -27,7 +27,6 @@ void COpendactWnd::on_calibrateButton_clicked()
         OpenDACT.wasZProbeHeightSet  = false;
 
         iteration           = 0;
-        wasSet              = false;
         currentPosition     = 0;
         Heights.position    = 0;
 
@@ -117,15 +116,15 @@ void COpendactWnd::checkZProbe   ()
         break;
     case 1:
 //        EEPROM.zProbeHeight = 0;
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
         iteration++;
         break;
     case 2:
-        Printer.cmdGoToXYZ(0,0,int(EEPROM.zMaxLength/6.0+0.5));
+        Printer.sendGoToXYZ(0,0,int(EEPROM.zMaxLength/6.0+0.5));
         iteration++;
         break;
     case 3:
-        Printer.cmdGetZProbeValue();// probe();
+        Printer.sendGetZProbeValue();// probe();
         iteration++;
         break;
     case 4:
@@ -159,17 +158,17 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 0-0";
-            Printer.cmdGoHomeAll();
+            Printer.sendGoHomeAll();
             iteration++;
             break;
         case 1:
             //qDebug() << "        handleInput() 0-1";
-            Printer.cmdGoToXYZ(0,0,probingHeight);// "G1 Z" + probingHeight + " X0 Y0";
+            Printer.sendGoToXYZ(0,0,probingHeight);// "G1 Z" + probingHeight + " X0 Y0";
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 0-2";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 3:
@@ -180,7 +179,7 @@ void COpendactWnd::checkHeights  ()
             //                                 " X-" + valueXYLarge.ToString() +
             //                                 " Y-" + valueXYSmall.ToString());
             iteration++;
-            Printer.cmdGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
             currentPosition++;
             iteration = 0;
         }
@@ -189,7 +188,7 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 1-0";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 1:
@@ -199,13 +198,13 @@ void COpendactWnd::checkHeights  ()
 //                                                 " Y-" + valueXYSmall.ToString());
             Heights.setHeights(Printer.ZProbe.Z);
             setHeightsInvoke();
-            Printer.cmdGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 1-2";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-            Printer.cmdGoToXYZ(0,0,probingHeight);
+            Printer.sendGoToXYZ(0,0,probingHeight);
             iteration++;
             break;
         case 3:
@@ -213,7 +212,7 @@ void COpendactWnd::checkHeights  ()
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
 //                                                 " X" + valueXYLarge.ToString() +
 //                                                 " Y" + valueXYSmall.ToString());
-            Printer.cmdGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
             currentPosition++;
             iteration = 0;
             break;
@@ -223,7 +222,7 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 2-0";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 1:
@@ -233,13 +232,13 @@ void COpendactWnd::checkHeights  ()
 //                                                 " Y" + valueXYSmall.ToString());
             Heights.setHeights(Printer.ZProbe.Z);
             setHeightsInvoke();
-            Printer.cmdGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 2-2";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-            Printer.cmdGoToXYZ(0,0,probingHeight);
+            Printer.sendGoToXYZ(0,0,probingHeight);
             iteration++;
             break;
         case 3:
@@ -247,7 +246,7 @@ void COpendactWnd::checkHeights  ()
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
 //                                                 " X" + valueXYLarge.ToString() +
 //                                                 " Y-" + valueXYSmall.ToString());
-            Printer.cmdGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
             currentPosition++;
             iteration = 0;
             break;
@@ -257,7 +256,7 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 3-0";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 1:
@@ -267,13 +266,13 @@ void COpendactWnd::checkHeights  ()
 //                                                 " Y-" + valueXYSmall.ToString());
             Heights.setHeights(Printer.ZProbe.Z);
             setHeightsInvoke();
-            Printer.cmdGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 3-2";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-            Printer.cmdGoToXYZ(0,0,probingHeight);
+            Printer.sendGoToXYZ(0,0,probingHeight);
             iteration++;
             break;
         case 3:
@@ -281,7 +280,7 @@ void COpendactWnd::checkHeights  ()
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
 //                                                 " X-" + valueXYLarge.ToString() +
 //                                                 " Y" + valueXYSmall.ToString());
-            Printer.cmdGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
             currentPosition++;
             iteration = 0;
             break;
@@ -291,7 +290,7 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 4-0";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 1:
@@ -301,20 +300,20 @@ void COpendactWnd::checkHeights  ()
 //                                                 " Y" + valueXYSmall.ToString());
             Heights.setHeights(Printer.ZProbe.Z);
             setHeightsInvoke();
-            Printer.cmdGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
+            Printer.sendGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 4-2";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-            Printer.cmdGoToXYZ(0,0,probingHeight);
+            Printer.sendGoToXYZ(0,0,probingHeight);
             iteration++;
             break;
         case 3:
             //qDebug() << "        handleInput() 4-3";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
 //                                                 " X0 Y" + valueZ.ToString());
-            Printer.cmdGoToXYZ(0,valueZ,probingHeight);
+            Printer.sendGoToXYZ(0,valueZ,probingHeight);
             currentPosition++;
             iteration = 0;
             break;
@@ -324,7 +323,7 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 5-0";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 1:
@@ -333,14 +332,14 @@ void COpendactWnd::checkHeights  ()
 //                                                 " X0 Y" + valueZ.ToString());
             Heights.setHeights(Printer.ZProbe.Z);
             setHeightsInvoke();
-            Printer.cmdGoToXYZ(0,valueZ,probingHeight);
+            Printer.sendGoToXYZ(0,valueZ,probingHeight);
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 5-2";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
 //                                                 " X0 Y-" + valueZ.ToString());
-            Printer.cmdGoToXYZ(0,-valueZ,probingHeight);
+            Printer.sendGoToXYZ(0,-valueZ,probingHeight);
             currentPosition++;
             iteration = 0;
             break;
@@ -350,7 +349,7 @@ void COpendactWnd::checkHeights  ()
         switch (iteration){
         case 0:
             //qDebug() << "        handleInput() 6-0";
-            Printer.cmdGetZProbeValue();// probe();
+            Printer.sendGetZProbeValue();// probe();
             iteration++;
             break;
         case 1:
@@ -359,26 +358,26 @@ void COpendactWnd::checkHeights  ()
 //                                                 " X0 Y-" + valueZ.ToString());
             Heights.setHeights(Printer.ZProbe.Z);
             setHeightsInvoke();
-            Printer.cmdGoToXYZ(0,-valueZ,probingHeight);
+            Printer.sendGoToXYZ(0,-valueZ,probingHeight);
             iteration++;
             break;
         case 2:
             //qDebug() << "        handleInput() 6-2";
 //                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-            Printer.cmdGoToXYZ(0,0,probingHeight);
+            Printer.sendGoToXYZ(0,0,probingHeight);
             iteration++;
             if (OpenDACT.calibrateInProgress == false){ iteration++; }
             break;
         case 3:
             //qDebug() << "        handleInput() 6-3";
 //                Connection._serialPort.WriteLine("G1 Z" + Convert.ToInt32(EEPROM.zMaxLength / 3) + " X0 Y0");
-            Printer.cmdGoToXYZ(0,0,int(EEPROM.zMaxLength / 3+0.5));
+            Printer.sendGoToXYZ(0,0,int(EEPROM.zMaxLength / 3+0.5));
             iteration++;
             Heights.printHeights();
             setHeightsInvoke();
             if (checkHeightsOnly){
                 step = GoHome;
-                Printer.cmdGoHomeAll();
+                Printer.sendGoHomeAll();
             }
             else step = Calibrate;
             iteration=0;
@@ -390,7 +389,7 @@ void COpendactWnd::checkHeights  ()
             setHeightsInvoke();
             if (checkHeightsOnly){
                 step = GoHome;
-                Printer.cmdGoHomeAll();
+                Printer.sendGoHomeAll();
             }
             else step = Calibrate;
             iteration=0;
@@ -410,7 +409,7 @@ void COpendactWnd::calibrate     ()
     if (OpenDACT.calibrate()) {
         step = GoHome;
         slotLogConsole("Calibration Complete",Qt::blue);
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
     }
     else{
         step = CheckZProbe;
@@ -421,458 +420,6 @@ void COpendactWnd::calibrate     ()
         if (EEPROM.sendEEPROM()<=0) // Перезаписываем в еепром
             emit signalNextStep();
     }
-//    bool ret;
-//    switch (iteration) {
-//    case 0:
-//        consoleMain->appendPlainText(QString("Calibration Iteration Number: %1").arg(
-//                                  QString::number(OpenDACT.iterationNum)
-//                                  ));
-//        if (OpenDACT.calibrate()) {
-//            step = GoHome;
-//            consoleMain->appendPlainText("Calibration Complete");
-//        }
-//        else{
-//            iteration++;
-//            step = CheckZProbe;
-//            currentPosition = 0;
-//            iteration = 0;
-//            Heights.init();
-//        }
-//        setEEPROMGUIList();
-//        EEPROM.sendEEPROM();
-
-//        break;
-//    case 1:
-//        if (OpenDACT.calibrationState == false){
-//            Printer.cmdGoHomeAll();//GCode.homeAxes();
-//            OpenDACT.calibrationComplete = true;
-//            consoleMain->appendPlainText("Calibration Complete");
-//            state = Stoped;
-
-//            //end calibration
-//        }
-//        else{
-//            state = Stoped;// пока
-//            emit signalNextStep();
-//        }
-//        iteration=0;
-//        break;
-//    default:
-//        break;
-//    }
-}
-
-void COpendactWnd::activeLoopOld    ()
-{
-    if      (step==ReadEEPROM) qDebug() << "  activeLoop(ReadEEPROM){";
-    else if (step==Process) qDebug() << "  activeLoop(Process){";
-    else                       qDebug() << "  activeLoop(){";
-    switch (step){
-    case ReadEEPROM:
-        // Считали ЕЕПРОМ. Сохраняем начальные условия
-        EEPROM.readEEPROM();
-        setEEPROMGUIList();
-        EEPROM  .tempEEPROMSet = true;
-        OpenDACT.checkHeights  = true;
-//        EEPROMReadCount++;
-        step = Process;         // пока
-    case Process:
-        handleInput("",true);
-        break;
-    case GoHome:
-        // Пришли домой теперь надо промерить вершины
-        break;
-    case GoToXYZ:
-        // Измеряем расстояние до стола
-        break;
-    case ExecuteCommand:
-        break;
-    case ZProbe:
-        break;
-    default:
-        break;
-    }
-   qDebug() << "  } //activeLoop()";
-}
-
-void COpendactWnd::handleInput(const QString& message, bool canMove)
-{
-    Q_UNUSED(message);
-    qDebug() << "    handleInput(){";
-    if (OpenDACT.checkHeights == true && EEPROM.tempEEPROMSet == true &&
-            OpenDACT.calibrateInProgress == false && OpenDACT.EEPROMReadOnly == false){
-        if (UserVariables.probeChoice == "Z-Probe" && OpenDACT.wasZProbeHeightSet == false && wasSet == true){
-//            if (HeightFunctions.parseZProbe(message) != 1000)
-//            {
-                EEPROM.zProbeHeight = int(EEPROM.zMaxLength / 6+0.5) - Printer.ZProbe.Z;//HeightFunctions.parseZProbe(message));
-                OpenDACT.wasZProbeHeightSet = true;
-                setEEPROMGUIList();
-                EEPROM.sendEEPROM();
-//            }
-        }
-        else if (canMove == true){
-            positionFlowOld();
-        }
-        else if (/*HeightFunctions.parseZProbe(message) != 1000 &&*/ OpenDACT.heightsSet == false){
-            Heights.setHeights(Printer.ZProbe.Z);
-        }
-    }
-    else if (OpenDACT.calibrationState == true && OpenDACT.calibrateInProgress == false && OpenDACT.checkHeights == false &&
-             EEPROM.tempEEPROMSet == true && OpenDACT.EEPROMReadOnly == false &&
-             OpenDACT.heightsSet == true){
-//        Program.mainFormTest.setHeightsInvoke();
-
-        if (OpenDACT.calibrationState == true && OpenDACT.checkHeightsOnly == false){
-            OpenDACT.calibrateInProgress = true;
-            if (UserVariables.advancedCalibration == false || OpenDACT.isHeuristicComplete == true){
-                consoleMain->appendPlainText(QString("Calibration Iteration Number: %1").arg(
-                                          QString::number(OpenDACT.iterationNum)
-                                          ));
-                OpenDACT.calibrate();
-
-                setEEPROMGUIList();
-                EEPROM.sendEEPROM();
-
-                if (OpenDACT.calibrationState == false){
-                    Printer.cmdGoHomeAll();//GCode.homeAxes();
-                    OpenDACT.calibrationComplete = true;
-                    consoleMain->appendPlainText("Calibration Complete");
-                    //end calibration
-                }
-            }
-            else{
-                consoleMain->appendPlainText(QString("Heuristic Step: %1").arg(
-                                          QString::number(UserVariables.advancedCalCount,'f',3)
-                                          ));
-                OpenDACT.heuristicLearning();
-                setEEPROMGUIList();
-                EEPROM.sendEEPROM();
-            }
-
-
-            OpenDACT.calibrateInProgress = false;
-        }
-        else{
-            if (UserVariables.probeChoice == "FSR"){
-                EEPROM.zMaxLength -= UserVariables.FSROffset;
-                consoleMain->appendPlainText("Setting Z Max Length with adjustment for FSR");
-            }
-            Printer.cmdGoHomeAll();//GCode.homeAxes();
-            consoleMain->appendPlainText("Heights checked");
-        }
-        OpenDACT.heightsSet = false;
-    }
-    qDebug() << "    }//handleInput()";
-}
-
-void COpendactWnd::positionFlowOld()
-{
-    qDebug() << "      positionFlow(){";
-    float probingHeight = UserVariables.probingHeight;
-    float plateDiameter = UserVariables.plateDiameter;
-    int pauseTimeSet = UserVariables.pauseTimeSet;
-    float valueZ = 0.482F * plateDiameter;
-    float valueXYLarge = 0.417F * plateDiameter;
-    float valueXYSmall = 0.241F * plateDiameter;
-
-    Q_UNUSED(pauseTimeSet);
-
-    if (UserVariables.probeChoice == "Z-Probe" && wasSet == false){
-        switch (iteration){
-        case 0:
-            qDebug() << "        handleInput() wasSet == false 0";
-            EEPROM.zProbeHeight = 0;
-            Printer.cmdGoHomeAll();
-            iteration++;
-            break;
-        case 1:
-            qDebug() << "        handleInput() wasSet == false 1";
-            Printer.cmdGoToXYZ(0,0,int(EEPROM.zMaxLength/6.0+0.5));
-            iteration++;
-            break;
-        case 2:
-            qDebug() << "        handleInput() wasSet == false 1";
-            Printer.cmdGetZProbeValue();// probe();
-            wasSet = true;
-//            setEEPROMGUIList();
-//            EEPROM.sendEEPROM();
-            iteration = 0;
-            break;
-        }
-        /*
-        pauseTimeZMax();
-        pauseTimeZMax();
-        pauseTimeProbe();
-        */
-    }
-    else{
-        Printer.sendCmd(QString("G0 F%1").arg(UserVariables.xySpeed * 60),false);//converts mm/s to mm/min
-        switch (currentPosition){
-        case 0:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 0-0";
-                Printer.cmdGoHomeAll();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 0-1";
-                Printer.cmdGoToXYZ(0,0,probingHeight);// "G1 Z" + probingHeight + " X0 Y0";
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 0-2";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 3:
-                //Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-                //                                 " X-" + valueXYLarge.ToString() +
-                //                                 " Y-" + valueXYSmall.ToString());
-                qDebug() << "        handleInput() 0-3";
-                Printer.cmdGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
-                currentPosition++;
-                iteration = 0;
-                break;
-            }
-            /*
-            pauseTimeZMaxThird();
-            pauseTimeZMaxThird();
-            pauseTimeZMax();
-            pauseTimeProbe();
-            pauseTimeRadius();
-            */
-            break;
-        case 1:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 1-0";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 1-1";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X-" + valueXYLarge.ToString() +
-//                                                 " Y-" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 1-2";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-                Printer.cmdGoToXYZ(0,0,probingHeight);
-                iteration++;
-                break;
-            case 3:
-                qDebug() << "        handleInput() 1-3";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X" + valueXYLarge.ToString() +
-//                                                 " Y" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
-                currentPosition++;
-                iteration = 0;
-                break;
-            }
-            /*
-            pauseTimeProbe();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            currentPosition++;
-            */
-            break;
-        case 2:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 2-0";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 2-1";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X" + valueXYLarge.ToString() +
-//                                                 " Y" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 2-2";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-                Printer.cmdGoToXYZ(0,0,probingHeight);
-                iteration++;
-                break;
-            case 3:
-                qDebug() << "        handleInput() 2-3";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X" + valueXYLarge.ToString() +
-//                                                 " Y-" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
-                currentPosition++;
-                iteration = 0;
-                break;
-            }
-            /*
-            pauseTimeProbe();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            currentPosition++;
-            */
-            break;
-        case 3:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 3-0";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 3-1";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X" + valueXYLarge.ToString() +
-//                                                 " Y-" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 3-2";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-                Printer.cmdGoToXYZ(0,0,probingHeight);
-                iteration++;
-                break;
-            case 3:
-                qDebug() << "        handleInput() 3-3";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X-" + valueXYLarge.ToString() +
-//                                                 " Y" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
-                currentPosition++;
-                iteration = 0;
-                break;
-            }
-            /*
-            pauseTimeProbe();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            currentPosition++;
-            */
-            break;
-        case 4:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 4-0";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 4-1";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X-" + valueXYLarge.ToString() +
-//                                                 " Y" + valueXYSmall.ToString());
-                Printer.cmdGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 4-2";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-                Printer.cmdGoToXYZ(0,0,probingHeight);
-                iteration++;
-                break;
-            case 3:
-                qDebug() << "        handleInput() 4-3";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X0 Y" + valueZ.ToString());
-                Printer.cmdGoToXYZ(0,valueZ,probingHeight);
-                currentPosition++;
-                iteration = 0;
-                break;
-            }
-            /*
-            pauseTimeProbe();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            currentPosition++;
-            */
-            break;
-        case 5:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 5-0";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 5-1";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X0 Y" + valueZ.ToString());
-                Printer.cmdGoToXYZ(0,valueZ,probingHeight);
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 5-2";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X0 Y-" + valueZ.ToString());
-                Printer.cmdGoToXYZ(0,-valueZ,probingHeight);
-                currentPosition++;
-                iteration = 0;
-                break;
-            }
-            /*
-            pauseTimeProbe();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            currentPosition++;
-            */
-            break;
-        case 6:
-            switch (iteration){
-            case 0:
-                qDebug() << "        handleInput() 6-0";
-                Printer.cmdGetZProbeValue();// probe();
-                iteration++;
-                break;
-            case 1:
-                qDebug() << "        handleInput() 6-1";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() +
-//                                                 " X0 Y-" + valueZ.ToString());
-                Printer.cmdGoToXYZ(0,-valueZ,probingHeight);
-                iteration++;
-                break;
-            case 2:
-                qDebug() << "        handleInput() 6-2";
-//                Connection._serialPort.WriteLine("G1 Z" + probingHeight.ToString() + " X0 Y0");
-                Printer.cmdGoToXYZ(0,0,probingHeight);
-                iteration++;
-                if (OpenDACT.calibrateInProgress == false){ iteration++; }
-                break;
-            case 3:
-                qDebug() << "        handleInput() 6-3";
-//                Connection._serialPort.WriteLine("G1 Z" + Convert.ToInt32(EEPROM.zMaxLength / 3) + " X0 Y0");
-                Printer.cmdGoToXYZ(0,0,int(EEPROM.zMaxLength / 3+0.5));
-                iteration++;
-                break;
-            case 4:
-                qDebug() << "        handleInput() 6-4";
-                currentPosition = 0;
-                OpenDACT.checkHeights = false;
-                iteration = 0;
-                Printer.sendCmd(QString("G0 F%1").arg(UserVariables.xySpeed * 60),true);//converts mm/s to mm/min
-                break;
-            }
-            /*
-            pauseTimeProbe();
-            pauseTimeRadius();
-            pauseTimeRadius();
-            pauseTimeZMaxThird();
-            */
-            break;
-        }//end switch
-    }//end else
-    qDebug() << "      } //positionFlow()";
 }
 
 COpendactWnd::COpendactWnd(QWidget *parent) :
@@ -892,12 +439,11 @@ COpendactWnd::COpendactWnd(QWidget *parent) :
     connect (&Printer,SIGNAL(signalCommandExecuted()),this,SLOT(slotCommandExecuted()),Qt::QueuedConnection);
     connect (&Printer      ,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)),Qt::QueuedConnection);
     connect (&Printer      ,SIGNAL(signalNewPosition(TVertex)),SLOT(slotNewPosition(TVertex)));
-    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)),Qt::QueuedConnection);
+//--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)),Qt::QueuedConnection);
     connect (this,SIGNAL(signalNextStep()),SLOT(slotCommandExecuted()),Qt::QueuedConnection);
     connect (InputHeightMap,SIGNAL(pushButtonClicked(CHeightmapWidget::EBushButtons)),SLOT(onInputPushButtonClicked(CHeightmapWidget::EBushButtons)));
     connect (autoCheckBox,SIGNAL(clicked(bool)),SLOT(on_autoCheckBox(bool)));
     iteration           = 0;
-    wasSet              = false;
     currentPosition     = 0;
     checkHeightsOnly    = false;
     updateControls();
@@ -1316,25 +862,25 @@ void COpendactWnd::onInputPushButtonClicked(CHeightmapWidget::EBushButtons but)
 //    qDebug() << but;
     switch (but) {
     case CHeightmapWidget::EHomeAll:
-        Printer.cmdGoHomeAll();
+        Printer.sendGoHomeAll();
         break;
     case CHeightmapWidget::EX:
-        Printer.cmdGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
+        Printer.sendGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
         break;
     case CHeightmapWidget::EXOpp:
-        Printer.cmdGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
+        Printer.sendGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
         break;
     case CHeightmapWidget::EY:
-        Printer.cmdGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
+        Printer.sendGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
         break;
     case CHeightmapWidget::EYOpp:
-        Printer.cmdGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
+        Printer.sendGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
         break;
     case CHeightmapWidget::EZ:
-        Printer.cmdGoToXYZ(0,valueZ,probingHeight);
+        Printer.sendGoToXYZ(0,valueZ,probingHeight);
         break;
     case CHeightmapWidget::EZOpp:
-        Printer.cmdGoToXYZ(0,-valueZ,probingHeight);
+        Printer.sendGoToXYZ(0,-valueZ,probingHeight);
         break;
     default:
         break;

@@ -145,6 +145,6 @@ int COpendactEeprom::sendEEPROM()
     }
     int len = script.length();
     if (len>0)
-        Printer.playScript(script);
+        Printer.sendScript(script);
     return len;
 }

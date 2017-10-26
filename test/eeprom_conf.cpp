@@ -245,7 +245,7 @@ CEepromConfiguration::CEepromConfiguration(QWidget *parent) :
     tableView->setModel(Model);
     tableView->setItemDelegate(new QEepromDelegate(this));
     updateModel = true;
-    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),this,SLOT(slotReady(QString)));
+    //connect (Printer,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)));
 }
 
 CEepromConfiguration::~CEepromConfiguration()
@@ -259,11 +259,11 @@ void CEepromConfiguration::on_pbRefresh_clicked()
 
 void CEepromConfiguration::slotReady(const QString& name)
 {
-    if (name == CEeProm::TaskName){
-        if (updateModel==true)
-            Model->update();
-        updateModel = false;
-    }
+//    if (name == CEeProm::TaskName){
+//        if (updateModel==true)
+//            Model->update();
+//        updateModel = false;
+//    }
 }
 
 void CEepromConfiguration::on_pbRead_clicked()
@@ -286,7 +286,7 @@ void CEepromConfiguration::on_pbWrite_clicked()
             Printer.EEPROM->setParameterValue(i,rec1->IValue);
     }
     updateModel = true;
-    Printer.playScript(script);
+    Printer.sendScript(script);
 }
 
 void CEepromConfiguration::on_pbSave_clicked()

@@ -5,6 +5,7 @@
 #include <QDockWidget>
 #include <QString>
 #include <QPlainTextEdit>
+#include "../core/printer/connection.h"
 
 class CLogView : public QDockWidget
 {
@@ -14,7 +15,7 @@ public:
 protected:
     QPlainTextEdit* logView;
 public slots:
-    void slotAddLine(const QString& line);
+    void slotAddLine(CConnection::EDirection dir,const QString& line);
 };
 
 #endif // LOG_VIEW_H
