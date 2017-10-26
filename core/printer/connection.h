@@ -62,7 +62,7 @@ signals:
     void          signalOpened   ();  // Сигнал "Соединение установлено"
     void          signalClosed   ();  // Сигнал "Соединение разорвано"
     void          signalDataReady();  // Сигнал "Входящие данные готовы"
-    void          signalAddToLog (EDirection direction,
+    void          signalAddToLog (CConnection::EDirection direction,
                                   const QString& string); // Сигнал Вывода входящих строк в консоль (лог)
 };
 

@@ -52,7 +52,8 @@ void MainWindow::createUi     ()
     setCentralWidget(w);
     logView = new CLogView(this);
     addDockWidget(Qt::BottomDockWidgetArea,logView);
-    connect(Printer.Connection,SIGNAL(signalAddToLog(QString)),logView,SLOT(slotAddLine(QString)));
+    connect(Printer.Connection,SIGNAL(signalAddToLog(CConnection::EDirection,QString)),
+            logView,SLOT(slotAddLine(CConnection::EDirection,QString)));
 //--    connect (Printer.EEPROM,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
 //--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
     connect (&Printer,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
@@ -111,7 +112,7 @@ void MainWindow::updateActions()
     bool fl = Printer.Connection->isOpened();
     actOpenPort->setEnabled(!fl);
     actClosePort->setEnabled(fl);
-//    centralWindow->setEnabled(fl);
+    centralWindow->setEnabled(fl);
 }
 
 void MainWindow::slotUpdate   ()

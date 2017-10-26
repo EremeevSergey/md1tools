@@ -124,6 +124,7 @@ Custom M Codes
 
 CPrinter::CPrinter(QObject *parent):QObject(parent),CBasePrinterObject(0)
 {
+    Name = "Printer";
     Connection     = new CConnection(this);
     EEPROM         = new CEeProm(this);
     CurrentCommandType = EPrinterCommandsNone; // Команда не обрабатывается
@@ -137,8 +138,8 @@ CPrinter::CPrinter(QObject *parent):QObject(parent),CBasePrinterObject(0)
 CPrinter::~CPrinter()
 {
     Connection->close();
-    delete EEPROM;
-    delete Connection;
+//    delete EEPROM;
+//    delete Connection;
 }
 
 bool CPrinter::__sendCommand(const QString& cmd_string,EPrinterCommands cmd_type,bool wait)

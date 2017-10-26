@@ -75,7 +75,6 @@ bool CConnection::open()
             clearInputBuffer();
             State = StateWaitStart;
             //            TimerId = startTimer(TIME_OUT_CONNECTION_MS);
-            InputBuffer.clear();
             return true;
         }
         else{

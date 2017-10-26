@@ -2,7 +2,7 @@
 
 CBasePrinterObject::CBasePrinterObject(CBasePrinterObject *parent)
 {
-    if (parent) __addChild (this);
+    if (parent) parent->__addChild (this);
     else ParentObject=0;
 }
 
