@@ -14,6 +14,8 @@
         <file>opendact.png</file>
         <file>stop_1.png</file>
         <file>joystick.png</file>
+        <file>up1.png</file>
+        <file>down1.png</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

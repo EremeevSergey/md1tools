@@ -1,0 +1,28 @@
+#ifndef UP_DOWN_WIDGET_H
+#define UP_DOWN_WIDGET_H
+#include <QFrame>
+#include <QToolButton>
+#include <QLabel>
+#include <QDoubleSpinBox>
+#include <QString>
+
+class CUpDownWidget : public QFrame
+{
+    Q_OBJECT
+public:
+    explicit CUpDownWidget(const QString& name,QWidget *parent = 0);
+    void     setPosition(float pos);
+    QSize    sizeHint() const;
+protected:
+    QToolButton*    upButton;
+    QToolButton*    downButton;
+    QLabel*         labelValue;
+    QLabel*         labelStep;
+    QLabel*         labelName;
+    QDoubleSpinBox* step;
+signals:
+
+public slots:
+};
+
+#endif // UP_DOWN_WIDGET_H

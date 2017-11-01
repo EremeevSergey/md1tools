@@ -5,17 +5,19 @@
 /*****************************************************************************\
 *                                 CExtruderSet                                *
 \*****************************************************************************/
-char CExtruderSet::TaskName[] = "Extruder.internal";
-
-
-CExtruderSet::CExtruderSet(CPrinter *parent) :
-    QObject(parent)
+CExtruder::CExtruder()
 {
-    Printer = parent;
-    State   = Ready;
-    CurrentItem = -1;
+    Temperature = 0;
+    On = false;
+}
 
-    connect(Printer->Connection,SIGNAL(signalAddToLog(QString)),SLOT(slotAnswer(QString)));
+/*****************************************************************************\
+*                                 CExtruderSet                                *
+\*****************************************************************************/
+CExtruderSet::CExtruderSet(CBasePrinterObject *parent) :
+    CBasePrinterObject(parent)
+{
+    Name    = "Extruder";
 }
 
 CExtruderSet::~CExtruderSet()
@@ -23,21 +25,18 @@ CExtruderSet::~CExtruderSet()
     clear();
 }
 
-bool CExtruderSet::setAmount (int amount)
+void CExtruderSet::setAmount (int amount)
 {
     clear();
     for (int i=0;i<amount;i++)
-        Items.append(qQNaN());
+        Items.append(CExtruder());
 }
 
 void CExtruderSet::clear()
 {
-//    for (int i=0,n= Items.size();i<n;i++){
-//        delete Items.at(i);
-//    }
     Items.clear();
 }
-
+/*
 bool CExtruderSet::setTemperature (int extruderNumber,float temp, bool wait)
 {
 //    - M104 S<temp> T<extruder> P1 F1 - Set temperature without wait.
@@ -65,28 +64,4 @@ bool CExtruderSet::updateData(int extruderNumber)
 {
     return false;
 }
-
-void CExtruderSet::slotAnswer(const QString& str)
-{
-/*    if (State != Ready){
-        CConnection::Direction dir;
-        QString s = CConnection::logStringToString(str,&dir);
-        if (dir == CConnection::Input){
-            if (s.trimmed().toLower() == "wait"){
-                // Command Executed
-                Busy = Ready;
-                emit signalReady (TaskName);
-            }
-            switch (Busy) {
-            case ReadAll:
-                r = new CEePromRecord();
-                if (r->FromString(s)) ValueList.append(r);
-                else delete r;
-                break;
-            default:
-                break;
-            }
-        }
-    }
-    */
-}
+*/

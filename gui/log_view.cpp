@@ -18,7 +18,7 @@ CLogView::CLogView(QWidget *parent) :
 
 void CLogView::slotAddLine(CConnection::EDirection dir,const QString& str)
 {
-    if (str.startsWith("wait") || str.startsWith("busy")) return;
+//    if (str.startsWith("wait") || str.startsWith("busy")) return;
 
     QTextCharFormat fmt = logView->currentCharFormat();
     fmt.setFontFixedPitch(false);

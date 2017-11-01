@@ -13,8 +13,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-//    Printer.Connection->setSerialPortBaudRate(115200);
-//    Printer.Connection->setSerialPort("ttyUSB0");
     createActions();
     createMenus  ();
     createToolBar();
@@ -98,7 +96,7 @@ void MainWindow::createMenus()
     pmenu->addAction(actSetup);
     pmenu->addSeparator();
     pmenu->addAction(tr("Exit"),qApp,SLOT(closeAllWindows()),QKeySequence("CTRL+Q"));
-    menuBar()->addMenu(pmenu);
+//    menuBar()->addMenu(pmenu);
 }
 
 QAction* MainWindow::newAction(const QString &name, const char* icon_name)
@@ -112,7 +110,7 @@ void MainWindow::updateActions()
     bool fl = Printer.Connection->isOpened();
     actOpenPort->setEnabled(!fl);
     actClosePort->setEnabled(fl);
-    centralWindow->setEnabled(fl);
+//    centralWindow->setEnabled(fl);
 }
 
 void MainWindow::slotUpdate   ()

@@ -5,6 +5,7 @@
 #include "../gui/basewnd.h"
 #include "ui_eeprom_conf.h"
 #include "../common.h"
+#include "../core/printer/commands.h"
 
 class QEepromDelegate: public QItemDelegate
 {
@@ -64,7 +65,8 @@ public:
 protected:
     bool updateModel;
 protected slots:
-    void slotReady(const QString& name);
+//    void slotReady(const QString& name);
+    void slotCommandReady (int cmd_type);
 private slots:
     void on_pbRefresh_clicked();
 

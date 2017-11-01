@@ -3,93 +3,7 @@
 #include <QDebug>
 #include "../../common.h"
 
-/*****************************************************************************\
-*                                                                             *
-*                                                                             *
-\*****************************************************************************/
 extern double fsquare(double x);
-/*
-QVertexTableModel::QVertexTableModel(QObject * parent):QAbstractTableModel(parent)
-{
-}
-
-void QVertexTableModel::clear()
-{
-    beginResetModel();
-    Points.clear();
-    endResetModel();
-}
-
-
-void QVertexTableModel::append(const TVertex& ver)
-{
-    beginResetModel();
-    Points.append(ver);
-    endResetModel();
-}
-
-const TVertex& QVertexTableModel::at(int index)
-{
-    return Points.at(index);
-}
-
-void QVertexTableModel::setAt(int index,const TVertex& ver)
-{
-    if (index>=0 && index<Points.size()){
-        beginResetModel();
-        Points[index] = ver;
-        endResetModel();
-    }
-}
-
-void QVertexTableModel::setAt(int index,double x, double y, double z)
-{
-    if (index>=0 && index<Points.size()){
-        beginResetModel();
-        Points[index] = TVertex(x,y,z);
-        endResetModel();
-    }
-}
-
-int QVertexTableModel::rowCount(const QModelIndex & parent) const
-{
-    Q_UNUSED(parent);
-    return Points.size();
-}
-
-int QVertexTableModel::columnCount(const QModelIndex & parent) const
-{
-    Q_UNUSED(parent);
-    return 3;
-}
-
-QVariant QVertexTableModel::data(const QModelIndex & index, int role) const
-{
-    if (index.isValid()){
-        int      col = index.column();
-        int      row = index.row();
-        if (row>=0 && row<Points.size()){
-            if (role==Qt::DisplayRole){
-            TVertex ver = Points.at(row);
-            if (col==0 && !qIsNaN(ver.X)) return QString::number(ver.X,'f',2);
-            if (col==1 && !qIsNaN(ver.Y)) return QString::number(ver.Y,'f',2);
-            if (col==2 && !qIsNaN(ver.Z)) return QString::number(ver.Z,'f',2);
-            }
-        }
-    }
-    return QVariant();
-}
-
-QVariant QVertexTableModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole){
-        if (section==0) return "X";
-        if (section==1) return "Y";
-        if (section==2) return "Z";
-    }
-    return QAbstractTableModel::headerData(section,orientation,role);
-}
-*/
 /*****************************************************************************\
 *                                                                             *
 *                                                                             *
@@ -98,14 +12,11 @@ CEscher3dWindow::CEscher3dWindow(QWidget *parent) :
     CBaseWindow(parent),Ui::escher3d_wnd()
 {
     setupUi(this);
-//    Model = new QVertexTableModel();
-//    tvPoints->setModel(Model);
-//    tvPoints->hide();
-    delete tvPoints;
 
     TableVertex = new QTableVertex();
     groupBox_2->layout()->addWidget(TableVertex);
-    connect(TableVertex,SIGNAL(signalBPCliked(int)),SLOT(slotBPCliked(int)));
+    connect(TableVertex,SIGNAL(signalBPCliked    (int)),SLOT(slotBPCliked    (int)));
+    connect(TableVertex,SIGNAL(signalValueChanged(int)),SLOT(slotValueChanged(int)));
 
     setWindowTitle("escher3d.com");
     setWindowIcon(QIcon(":/images/esher3d.png"));
@@ -129,70 +40,216 @@ CEscher3dWindow::CEscher3dWindow(QWidget *parent) :
     numfactors->setCurrentText("6");
     copyButton->setDisabled(true);
     dsbHeight->setValue(20);
-    currectVertexIndex = 0;
-    connect (&Printer,SIGNAL(signalCommandExecuted()),this,SLOT(slotCommandExecuted()));
+    currectVertexIndex = -1;
+    connect (&Printer,SIGNAL(signalCommandReady(int)),this,SLOT(slotCommandExecuted(int)),Qt::QueuedConnection);
     pbRecalc->setEnabled(false);
     updateControls();
     calcProbePoints();
     on_cbAutoManual_clicked();
-    connect (&Printer      ,SIGNAL(signalNewPosition(TVertex)),SLOT(slotNewPosition(TVertex)));
+    connect (&Printer,SIGNAL(signalNewPositionReady(TVertex)),SLOT(slotNewPositionReady(TVertex)));
 }
 
 CEscher3dWindow::~CEscher3dWindow()
 {
 }
 
+void CEscher3dWindow::slotCommandExecuted(int)
+{
+    mainLoop();
+}
+
+void CEscher3dWindow::on_pbStart_clicked()
+{
+    copyButton->setDisabled(true);
+    if (state==Stoped){
+        start();
+        calcProbePoints();
+//        pbRecalc->setEnabled(false);
+        state= Active;
+        step = GoHome;
+        currectVertexIndex = 0;
+        Printer.sendGoHomeAll();
+        updateControls();
+    }
+}
+
+void CEscher3dWindow::mainLoop()
+{
+//    qDebug() << "CEscher3dWindow::slotCommandExecuted(int)" << state  << step;
+    switch (state) {
+    case Active:
+        activeLoop();
+        break;
+    default:
+        break;
+    }
+    updateControls();
+}
+
+void CEscher3dWindow::activeLoop()
+{
+    double z;
+    switch (step){
+    case GoHome:
+        currectVertexIndex = 0;
+        if (!gotoxyz()){
+            state = Stoped;
+            stop();
+        }
+        break;
+    case GoToXYZ:
+        Printer.sendGetZProbeValue();
+        step = ZProbe;
+        break;
+    case ZProbe:
+        z = Printer.ZProbe.Z;
+        if (!qIsNaN(z)) z = z - dsbHeight->value();//+ dsbProbeHeight->value() -dsbHeight->value();
+        TableVertex->setZ(currectVertexIndex,z);
+        currectVertexIndex++;
+        if (!gotoxyz()){
+            state = Stoped;
+            calc();
+            pbRecalc->setEnabled(true);
+            stop();
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+bool CEscher3dWindow::gotoxyz ()
+{
+    int count = TableVertex->getSize();
+    if (count>currectVertexIndex){
+        step = GoToXYZ;
+        Printer.sendGoToXYZ(TableVertex->getX(currectVertexIndex),
+                           TableVertex->getY(currectVertexIndex),
+                           dsbHeight->value());
+        return true;
+    }
+    return false;
+}
+
+
+void CEscher3dWindow::on_pbRecalc_clicked()
+{
+    calc();
+    updateControls();
+}
+
+void CEscher3dWindow::on_pushButton_clicked()
+{
+    CEePromRecord* record;
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Tower X endstop offset"));
+    if (record) oldxstop->setValue(record->IValue);
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Tower Y endstop offset"));
+    if (record) oldystop->setValue(record->IValue);
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Tower Z endstop offset"));
+    if (record) oldzstop->setValue(record->IValue);
+
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Diagonal rod length"));
+    if (record) oldrodlength->setValue(record->FValue);
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Horizontal rod radius at 0,0"));
+    if (record) oldradius->setValue(record->FValue);
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Z max length"));
+    if (record) oldhomedheight->setValue(record->FValue);
+
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha A(210)"));
+    if (record) oldxpos->setValue(record->FValue-210.0);
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha B(330)"));
+    if (record) oldypos->setValue(record->FValue-330.0);
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha C(90)"));
+    if (record) oldzpos->setValue(record->FValue-90.0);
+}
+
+void CEscher3dWindow::on_cbAutoManual_clicked()
+{
+    bool fl = cbAutoManual->isChecked();
+    pbStart       ->setVisible(fl);
+    autoCheckBox  ->setVisible(!fl);
+    homeAllButton ->setVisible(!fl);
+    TableVertex   ->setButtonVisible(!fl);
+    TableVertex   ->setEditable(!fl);
+    clearAllValues->setVisible(!fl);
+    updateControls();
+}
+
+void CEscher3dWindow::on_autoCheckBox_clicked()
+{
+    TableVertex->setButtonCheckable(autoCheckBox->isChecked());
+    currectVertexIndex = -1;
+    updateControls();
+}
+
+void CEscher3dWindow::on_homeAllButton_clicked()
+{
+    TableVertex->uncheckButtons();
+    Printer.sendGoHomeAll();
+    currectVertexIndex = -1;
+    updateControls();
+}
+
+void CEscher3dWindow::slotBPCliked(int code)
+{
+    currectVertexIndex = code;
+    Printer.sendGoToXYZ(TableVertex->getX(currectVertexIndex),
+                       TableVertex->getY(currectVertexIndex),
+                       dsbHeight->value());
+    updateControls();
+}
+
+void CEscher3dWindow::slotValueChanged(int code)
+{
+    Q_UNUSED(code);
+    updateControls();
+}
+
+void CEscher3dWindow::slotNewPositionReady(const TVertex &ver)
+{
+    if (state!=Active)
+        TableVertex->setZ(currectVertexIndex,-ver.Z);
+}
+
+void CEscher3dWindow::on_clearAllValues_clicked()
+{
+//    calcProbePoints();
+    for (int i=0,n=TableVertex->getSize();i<n;i++)
+        TableVertex->setZ(i,qQNaN());
+    updateControls();
+}
+
 // ---                           escher3d.com                           --- //
 void CEscher3dWindow::calcProbePoints()
 {
-//    Model->clear();
-/*    Model->append(TVertex( 0    , 75   ,-0.96));
-    Model->append(TVertex( 64.95, 37.50,-0.72));
-    Model->append(TVertex( 64.95,-37.50,-0.76));
-    Model->append(TVertex( 0    ,-75.00,-0.56));
-    Model->append(TVertex(-64.95,-37.50,-0.46));
-    Model->append(TVertex(-64.95, 37.50,-0.45));
-    Model->append(TVertex( 0    , 37.50,-0.29));
-    Model->append(TVertex( 32.48,-18.75,-0.13));
-    Model->append(TVertex(-32.48,-18.75,-0.08));
-    Model->append(TVertex( 0    , 0    ,-0.02));
-*/
     int    num_Points = numPoints->value();
     double bed_Radius = bedradius->value();
-//    qDebug() << "CEscher3dWindow::calcProbePoints()";
     TableVertex->setSize(num_Points);
-//    Model->clear();
     if (num_Points==4) {
         for (int i=0;i<3;i++) {
             TableVertex->set(i,bed_Radius*sin(2.0*M_PI*i/3.0),bed_Radius*cos(2.0*M_PI*i/3.0));
-//            Model->append(TVertex(bed_Radius*sin((2.0*M_PI*i)/3.0),
-//                                  bed_Radius*cos((2.0*M_PI*i)/3.0)));
         }
         TableVertex->set(3,0,0);
-//        Model->append(TVertex(0,0));
     }
     else {
         if (num_Points>=7) {
             for (int i=0;i<6;i++) {
                 TableVertex->set(i,bed_Radius*sin(2.0*M_PI*i/6.0),bed_Radius*cos(2.0*M_PI*i/6.0));
-//                Model->append(TVertex(bed_Radius*sin((2.0*M_PI*i)/6.0),
-//                                      bed_Radius*cos((2.0*M_PI*i)/6.0)));
             }
         }
         if (num_Points>=10) {
             for (int i=6;i<9;i++) {
                 TableVertex->set(i,bed_Radius/2.0*sin(2.0*M_PI*(i-6)/3.0),bed_Radius/2.0*cos(2.0*M_PI*(i-6)/3.0));
-//                Model->append(TVertex(bed_Radius/2.0*sin((2.0*M_PI*(i-6))/3.0),
-//                                      bed_Radius/2.0*cos((2.0*M_PI*(i-6))/3.0)));
             }
             TableVertex->set(9,0,0);
-//            Model->append(TVertex(0,0));
         }
         else {
             TableVertex->set(6,0,0);
-//            Model->append(TVertex(0,0));
         }
     }
+    bool fl = cbAutoManual->isChecked();
+    TableVertex   ->setButtonVisible(!fl);
+    TableVertex   ->setEditable(!fl);
 }
 
 // ---                           escher3d.com                           --- //
@@ -203,18 +260,16 @@ void CEscher3dWindow::calc()
     QString rslt;
     try {
         rslt = DoDeltaCalibration();
-        result->setText(QString("&nbsp;Success! %1&nbsp;").arg(rslt));
+        result->setText(QString("<b>Success! %1<b>").arg(rslt));
         result->setStyleSheet("QLabel { background-color : green; }");
-//        document.getElementById("result").style.backgroundColor = "LightGreen";
         convertOutgoingEndstops();
         setNewParameters();
         generateCommands();
         copyButton->setDisabled(false);
     }
     catch (...) {
-        result->setText(QString("&nbsp;Error! %1&nbsp;").arg(rslt));
+        result->setText(QString("<b>Error! %1</b>").arg(rslt));
         result->setStyleSheet("QLabel { background-color : red; }");
-//        document.getElementById("result").style.backgroundColor = "LightPink";
         copyButton->setDisabled(true);
     }
 }
@@ -372,28 +427,12 @@ void CEscher3dWindow::getParameters()
         BedProbePoints.append(TVertex( TableVertex->getX(i),
                                        TableVertex->getY(i),
                                       -TableVertex->getZ(i)));
-//        TVertex ver = Model->at(i);
-//        ver.Z=-ver.Z;
-//        BedProbePoints.append(ver);
     }
-
-//    xBedProbePoints = [];
-//    yBedProbePoints = [];
-//    zBedProbePoints = [];
-//    for (var i = 0; i < numPoints; ++i) {
-//        xBedProbePoints.push(+document.getElementById("probeX" + i).value);
-//        yBedProbePoints.push(+document.getElementById("probeY" + i).value);
-//        zBedProbePoints.push(-document.getElementById("probeZ" + i).value);
-//    }
 }
 
 // ---                           escher3d.com                           --- //
 void CEscher3dWindow::convertIncomingEndstops()
 {
-//    double _endstopFactor = 1.0/(double)(stepspermm->value());
-//    deltaParams.xstop *= _endstopFactor;
-//    deltaParams.ystop *= _endstopFactor;
-//    deltaParams.zstop *= _endstopFactor;
     double _endstopFactor = (double)(stepspermm->value());
     deltaParams.xstop /= _endstopFactor;
     deltaParams.ystop /= _endstopFactor;
@@ -428,25 +467,6 @@ void CEscher3dWindow::setNewParameters()
 
 // ---                           escher3d.com                           --- //
 void CEscher3dWindow::copyToInitial() {
-/*    newrodlength  ->setText(QString::number(deltaParams.diagonal   ,'f',2));
-    newradius     ->setText(QString::number(deltaParams.radius     ,'f',2));
-    newhomedheight->setText(QString::number(deltaParams.homedHeight,'f',2));
-    newxstop      ->setText(QString::number(deltaParams.xstop      ,'f',0));
-    newystop      ->setText(QString::number(deltaParams.ystop      ,'f',0));
-    newzstop      ->setText(QString::number(deltaParams.zstop      ,'f',0));
-    newxpos       ->setText(QString::number(deltaParams.xadj       ,'f',2));
-    newypos       ->setText(QString::number(deltaParams.yadj       ,'f',2));
-    newzpos       ->setText(QString::number(deltaParams.zadj       ,'f',2));
-*/
-//    oldrodlength  ->setValue(newrodlength  ->text().toDouble());
-//    oldradius     ->setValue(newradius     ->text().toDouble());
-//    oldhomedheight->setValue(newhomedheight->text().toDouble());
-//    oldxstop      ->setValue(newxstop->text().toInt());
-//    oldystop      ->setValue(newystop->text().toInt());
-//    oldzstop      ->setValue(newzstop->text().toInt());
-//    oldxpos       ->setValue(newxpos->text().toDouble());
-//    oldypos       ->setValue(newypos->text().toDouble());
-//    oldzpos       ->setValue(newzpos->text().toDouble());
     oldrodlength  ->setValue(deltaParams.diagonal);
     oldradius     ->setValue(deltaParams.radius);
     oldhomedheight->setValue(deltaParams.homedHeight);
@@ -507,15 +527,6 @@ void CEscher3dWindow::on_numfactors_currentIndexChanged(const QString &arg1)
 void CEscher3dWindow::on_copyButton_clicked()
 {
     copyToInitial  ();
-/*    oldrodlength  ->setValue(deltaParams.diagonal);
-    oldradius     ->setValue(deltaParams.radius);
-    oldhomedheight->setValue(deltaParams.homedHeight);
-    oldxstop      ->setValue((int)(deltaParams.xstop+0.5));
-    oldystop      ->setValue((int)(deltaParams.ystop+0.5));
-    oldzstop      ->setValue((int)(deltaParams.zstop+0.5));
-    oldxpos       ->setValue(deltaParams.xadj);
-    oldypos       ->setValue(deltaParams.yadj);
-    oldzpos       ->setValue(deltaParams.zadj);*/
     QStringList script;
     int i = Printer.EEPROM->indexByStartName("Tower X endstop offset");
     if (i>=0){
@@ -591,185 +602,3 @@ void CEscher3dWindow::updateControls()
     pbRecalc->setEnabled(TableVertex->isAllZValueReady());
 }
 
-void CEscher3dWindow::slotCommandExecuted()
-{
-    mainLoop();
-}
-
-void CEscher3dWindow::on_pbStart_clicked()
-{
-    copyButton->setDisabled(true);
-    if (state==Stoped){
-        start();
-        calcProbePoints();
-//        pbRecalc->setEnabled(false);
-        state= Active;
-        step = GoHome;
-        currectVertexIndex = 0;
-//        Printer.Connection->writeLine("M321");
-//        Printer.Connection->writeLine("M322");
-        Printer.sendGoHomeAll();
-        updateControls();
-    }
-}
-
-void CEscher3dWindow::mainLoop()
-{
-    switch (state) {
-    case Active:
-        activeLoop();
-        break;
-    default:
-        break;
-    }
-    updateControls();
-}
-
-void CEscher3dWindow::activeLoop()
-{
-//    TVertex ver;
-    double z;
-    switch (step){
-    case GoHome:
-        currectVertexIndex = 0;
-        if (!gotoxyz()){
-            state = Stoped;
-            stop();
-        }
-        break;
-    case GoToXYZ:
-        Printer.sendGetZProbeValue();
-        step = ZProbe;
-        break;
-    case ZProbe:
-//        ver=Model->at(currectVertexIndex);
-//        z = Printer.ZProbe.Z;
-//        if (!qIsNaN(z)) ver.Z = z - dsbHeight->value();//+ dsbProbeHeight->value() -dsbHeight->value();
-//        else            ver.Z = z;
-//        Model->setAt(currectVertexIndex,ver);
-        z = Printer.ZProbe.Z;
-        if (!qIsNaN(z)) z = z - dsbHeight->value();//+ dsbProbeHeight->value() -dsbHeight->value();
-        TableVertex->setY(currectVertexIndex,z);
-        currectVertexIndex++;
-        if (!gotoxyz()){
-            state = Stoped;
-            calc();
-            pbRecalc->setEnabled(true);
-            stop();
-        }
-        break;
-    default:
-        break;
-    }
-}
-
-bool CEscher3dWindow::gotoxyz ()
-{
-//    int count = Model->size();
-//    if (count>currectVertexIndex){
-//        TVertex ver = Model->at(currectVertexIndex);
-//        ver.Z = dsbHeight->value()+dsbProbeHeight->value();
-//        step = GoToXYZ;
-//        Printer.cmdGoToXYZ(ver.X,ver.Y,ver.Z);
-//        return true;
-//    }
-//    return false;
-    int count = TableVertex->getSize();
-    if (count>currectVertexIndex){
-        step = GoToXYZ;
-        Printer.sendGoToXYZ(TableVertex->getX(currectVertexIndex),
-                           TableVertex->getY(currectVertexIndex),
-                           dsbHeight->value());
-        return true;
-    }
-    return false;
-}
-
-
-void CEscher3dWindow::on_pbRecalc_clicked()
-{
-    calc();
-    updateControls();
-}
-
-void CEscher3dWindow::on_pushButton_clicked()
-{
-/*    oldrodlength  ->setValue(deltaParams.diagonal);
-    oldradius     ->setValue(deltaParams.radius);
-    oldhomedheight->setValue(deltaParams.homedHeight);
-    oldxstop      ->setValue((int)(deltaParams.xstop+0.5));
-    oldystop      ->setValue((int)(deltaParams.ystop+0.5));
-    oldzstop      ->setValue((int)(deltaParams.zstop+0.5));
-    oldxpos       ->setValue(deltaParams.xadj);
-    oldypos       ->setValue(deltaParams.yadj);
-    oldzpos       ->setValue(deltaParams.zadj);*/
-    CEePromRecord* record;
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Tower X endstop offset"));
-    if (record) oldxstop->setValue(record->IValue);
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Tower Y endstop offset"));
-    if (record) oldystop->setValue(record->IValue);
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Tower Z endstop offset"));
-    if (record) oldzstop->setValue(record->IValue);
-
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Diagonal rod length"));
-    if (record) oldrodlength->setValue(record->FValue);
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Horizontal rod radius at 0,0"));
-    if (record) oldradius->setValue(record->FValue);
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Z max length"));
-    if (record) oldhomedheight->setValue(record->FValue);
-
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha A(210)"));
-    if (record) oldxpos->setValue(record->FValue-210.0);
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha B(330)"));
-    if (record) oldypos->setValue(record->FValue-330.0);
-    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha C(90)"));
-    if (record) oldzpos->setValue(record->FValue-90.0);
-}
-
-void CEscher3dWindow::on_cbAutoManual_clicked()
-{
-    bool fl = cbAutoManual->isChecked();
-    pbStart      ->setVisible(fl);
-    autoCheckBox ->setVisible(!fl);
-    homeAllButton->setVisible(!fl);
-    TableVertex  ->setButtonVisible(!fl);
-    updateControls();
-}
-
-void CEscher3dWindow::on_autoCheckBox_clicked()
-{
-    TableVertex->setButtonCheckable(autoCheckBox->isChecked());
-    currectVertexIndex = -1;
-    updateControls();
-}
-
-void CEscher3dWindow::on_homeAllButton_clicked()
-{
-    TableVertex->uncheckButtons();
-    Printer.sendGoHomeAll();
-    currectVertexIndex = -1;
-    updateControls();
-}
-
-void CEscher3dWindow::slotBPCliked(int code)
-{
-    qDebug() << "void CEscher3dWindow::slotBPCliked(int code)";
-    currectVertexIndex = code;
-    Printer.sendGoToXYZ(TableVertex->getX(currectVertexIndex),
-                       TableVertex->getY(currectVertexIndex),
-                       dsbHeight->value());
-    updateControls();
-}
-
-void CEscher3dWindow::slotNewPosition(const TVertex &ver)
-{
-    if (state!=Active)
-        TableVertex->setZ(currectVertexIndex,-ver.Z);
-}
-
-void CEscher3dWindow::on_clearAllValues_clicked()
-{
-//    calcProbePoints();
-    for (int i=0,n=TableVertex->getSize();i<n;i++)
-        TableVertex->setZ(i,qQNaN());
-}

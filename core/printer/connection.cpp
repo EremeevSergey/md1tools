@@ -25,11 +25,7 @@ CConnection::CConnection(CPrinter *parent):
     State = StateClosed;
     SerialPortBaudRate = 115200;
     clearInputBuffer();
-//    connect(SerialPort, static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
-//            &MainWindow::handleError);
-
     connect(SerialPort,SIGNAL(error(QSerialPort::SerialPortError)),
-//                static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error)),
             SLOT(handleError(QSerialPort::SerialPortError)));
     connect(SerialPort,SIGNAL(readyRead()),SLOT(slotDataRecieved()));
 
@@ -71,13 +67,18 @@ bool CConnection::open()
     if (State == StateClosed){
         SerialPort->clearError();
         if (SerialPort->open(QIODevice::ReadWrite) &&
-            SerialPort->setBaudRate(SerialPortBaudRate,QSerialPort::AllDirections)){
+                SerialPort->setBaudRate(SerialPortBaudRate,QSerialPort::AllDirections)){
+//            SerialPort->setDataBits   (QSerialPort::Data8);
+//            SerialPort->setParity     (QSerialPort::EvenParity);
+//            SerialPort->setFlowControl(QSerialPort::NoFlowControl);
+//            SerialPort->setStopBits   (QSerialPort::TwoStop);
             clearInputBuffer();
             State = StateWaitStart;
             //            TimerId = startTimer(TIME_OUT_CONNECTION_MS);
             return true;
         }
         else{
+            QMessageBox::critical(0,tr("Critical Error"), SerialPort->errorString());
             if (ParentObject){
                 ParentObject->setErrorString(SerialPort->errorString(),this);
             }
@@ -89,7 +90,7 @@ bool CConnection::open()
 bool CConnection::close()
 {
     bool ret = false;
-    if (State!=StateConnected){
+    if (State==StateConnected){
         SerialPort->clearError();
         SerialPort->close();
         if (SerialPort->error()==QSerialPort::NoError){
@@ -117,6 +118,7 @@ void CConnection::slotDataRecieved()
     if (State!=StateClosed){
         // Разбиваем полученные данные на строки
         QByteArray in = SerialPort->readAll();
+//        qDebug() << in;
         for (int i=0,n=in.size();i<n;i++){
             char ch = in.at(i);
             if (ch=='\n'){
@@ -171,7 +173,7 @@ bool CConnection::writeLine(const QByteArray& data)
         qint64 size=SerialPort->write(data+"\r\n");
         if (size>0)
             emit signalAddToLog(Output,QString(data.left(size)));
-        if (size==data.size()) return true;
+        if (size==data.size()+2) return true;
     }
     return false;
 }

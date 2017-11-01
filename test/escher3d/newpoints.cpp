@@ -62,7 +62,7 @@ void CTableLine::setZ(float val)
     ZLe->setPalette(palette);
 }
 
-void CTableLine::SetButtonVisible  (bool st)
+void CTableLine::setButtonVisible  (bool st)
 {
     ButtonVisible = st;
     BushButton->setVisible(st);
@@ -70,7 +70,12 @@ void CTableLine::SetButtonVisible  (bool st)
     Resize();
 }
 
-void CTableLine::SetButtonCheckable(bool st)
+void CTableLine::setEditable       (bool st)
+{
+    ZLe->setReadOnly(!st);
+}
+
+void CTableLine::setButtonCheckable(bool st)
 {
     ButtonCheckable = st;
     BushButton->setCheckable(st);
@@ -118,10 +123,9 @@ void CTableLine::textChanged()
         double f = str.toDouble(&b);
         if (!b) f = qQNaN();
         setZ(f);
+        emit signalValueChanged();
     }
 }
-
-
 
 QTableVertex::QTableVertex(QWidget *parent): QWidget(parent)
 {
@@ -151,7 +155,8 @@ void QTableVertex::setSize(int count)
         CTableLine* a = new CTableLine();
         Items.append(a);
         MainLayout->addWidget(a);
-        connect(a,SIGNAL(signalBPCliked()),SLOT(slotBPCliked()));
+        connect(a,SIGNAL(signalBPCliked    ()),SLOT(slotBPCliked    ()));
+        connect(a,SIGNAL(signalValueChanged()),SLOT(slotValueChanged()));
     }
 }
 
@@ -207,7 +212,15 @@ void QTableVertex::setButtonVisible  (bool st)
 {
     for (int i=0;i<Items.size();i++){
         CTableLine* l = Items.at(i);
-        if (l) l->SetButtonVisible(st);
+        if (l) l->setButtonVisible(st);
+    }
+}
+
+void QTableVertex::setEditable       (bool st)
+{
+    for (int i=0;i<Items.size();i++){
+        CTableLine* l = Items.at(i);
+        if (l) l->setEditable(st);
     }
 }
 
@@ -215,7 +228,7 @@ void QTableVertex::setButtonCheckable(bool st)
 {
     for (int i=0;i<Items.size();i++){
         CTableLine* l = Items.at(i);
-        if (l) l->SetButtonCheckable(st);
+        if (l) l->setButtonCheckable(st);
     }
     ButtonCheckable = st;
 }
@@ -244,6 +257,20 @@ void QTableVertex::slotBPCliked()
             else if (s->isButtonChecked())
                 emit signalBPCliked(code);
         }
+    }
+}
+
+void QTableVertex::slotValueChanged()
+{
+    CTableLine* s = qobject_cast<CTableLine*>(sender());
+    if (s){
+        int code=-1;
+        for (int i=0;i<Items.size();i++){
+            CTableLine* l = Items.at(i);
+            if(s==l) code = i;
+        }
+        if (code>=0)
+            signalValueChanged(code);
     }
 }
 

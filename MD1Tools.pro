@@ -42,7 +42,9 @@ SOURCES += main.cpp\
     core/printer/printer_object.cpp \
     core/printer/commands.cpp \
     test/control/control_wnd.cpp \
-    gui/widgets/bed_widget.cpp
+    gui/widgets/bed_widget.cpp \
+    gui/widgets/termwidget.cpp \
+    gui/widgets/up_down_widget.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -75,7 +77,9 @@ HEADERS  += mainwindow.h \
     core/printer/printer_object.h \
     core/printer/commands.h \
     test/control/control_wnd.h \
-    gui/widgets/bed_widget.h
+    gui/widgets/bed_widget.h \
+    gui/widgets/termwidget.h \
+    gui/widgets/up_down_widget.h
 
 RESOURCES += \
     gui/images/images.qrc
@@ -98,3 +102,5 @@ FORMS += \
 #---------------  Qwt Plot  ------------------------------------
 #INCLUDEPATH += /usr/local/qwt-6.1.3-qt-5.3.2/include/
 #LIBS += -L/usr/local/qwt-6.1.3-qt-5.3.2/lib -lqwt
+
+DISTFILES +=

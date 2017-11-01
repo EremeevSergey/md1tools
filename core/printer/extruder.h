@@ -2,16 +2,25 @@
 #define EXTRUDER_H
 #include <QList>
 #include <QString>
+#include "printer_object.h"
 
-#include <QObject>
 /*****************************************************************************\
 *                                 CExtruderSet                                *
 \*****************************************************************************/
-class CPrinter;
-
-class CExtruderSet : public QObject
+class CExtruder
 {
-    Q_OBJECT
+public:
+    CExtruder();
+    float Temperature;
+    bool  On;
+};
+
+/*****************************************************************************\
+*                                 CExtruderSet                                *
+\*****************************************************************************/
+
+class CExtruderSet : public CBasePrinterObject
+{
 public:
     enum EState{
         Ready = 0,
@@ -20,26 +29,15 @@ public:
         WriteOne
     };
 public:
-    static   char TaskName[];
-
-    explicit CExtruderSet(CPrinter *parent);
+    explicit CExtruderSet(CBasePrinterObject *parent);
             ~CExtruderSet();
     int      count(){return Items.size();}
-    bool     setAmount      (int amount);
-    bool     updateData     (int extruderNumber);
-    bool     setTemperature (int extruderNumber, float temp, bool wait=false);
+    void     setAmount(int amount);
+//    bool     setTemperature (int extruderNumber, float temp, bool wait=false);
 protected:
-    CPrinter*     Printer;
-    QList<float>  Items;
-    EState        State;
-    int           CurrentItem;
+    QList<CExtruder> Items;
 private:
     void          clear();
-signals:
-    void          signalBusy (const QString&);
-    void          signalReady(const QString&);
-public slots:
-    void          slotAnswer (const QString& str);
 };
 
 #include "printer.h"

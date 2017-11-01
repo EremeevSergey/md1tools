@@ -1,9 +1,14 @@
 #ifndef PRINTER_COMMANDS_H
 #define PRINTER_COMMANDS_H
 #include <QStringList>
+#include <QMap>
 
 enum EPrinterCommands{
     EPrinterCommandsNone=0,
+    EPrinterCommandsG1,
+    EPrinterCommandsG28,
+    EPrinterCommandsG30,
+    EPrinterCommandsM112,
     EPrinterCommandsM205,
     EPrinterCommandsM206
 };
@@ -50,6 +55,21 @@ protected:
     QList<CPrinterScriptCommand> Items;
 };
 
-
+/*****************************************************************************\
+*                                                                             *
+*                                                                             *
+\*****************************************************************************/
+class CPrinterCapabilities
+{
+public:
+    CPrinterCapabilities();
+    bool    isPresent  (const QString& name) const;
+    QString value      (const QString& name);
+    int     parseString(const QString& name);
+    void    clear      (){Items.clear();}
+    int     count      (){return Items.count();}
+protected:
+    QMap<QString,QString> Items;
+};
 
 #endif // PRINTER_COMMANDS_H

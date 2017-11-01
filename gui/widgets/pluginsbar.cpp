@@ -212,19 +212,19 @@ void CTaskBar::updateButtons()
         if (YOffset>0)
             down = true;
     }
-    ButtonUp  ->setEnabled(up);
-    ButtonDown->setEnabled(down);
+    ButtonDown  ->setEnabled(up);
+    ButtonUp->setEnabled(down);
     for (int i=0;i<Tasks.count();i++)
         Tasks.at(i)->move(0,BUTTON_SIZE_Y*i-YOffset);
 }
 
 void CTaskBar::slotClicked()
 {
-    if (sender()==ButtonUp){
+    if (sender()==ButtonDown){
             YOffset+=BUTTON_SIZE_Y/2;
         updateButtons();
     }
-    else if (sender()==ButtonDown){
+    else if (sender()==ButtonUp){
         YOffset-=BUTTON_SIZE_Y/2;
         if (YOffset<0) YOffset=0;
         updateButtons();

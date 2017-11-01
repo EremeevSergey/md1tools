@@ -37,8 +37,8 @@ bool CConfig::load()
     BaudRate = Settings->value(strBaudRate).toInt(&b);
     if (b!=true) BaudRate = 115200;
     WindowsHeight = Settings->value(strWindowsHeight).toInt(&b);
-    if (b!=true) WindowsHeight = 100;
+    if (b!=true) WindowsHeight = 480;
     WindowsWidth = Settings->value(strWindowsWidth).toInt(&b);
-    if (b!=true) WindowsWidth = 200;
+    if (b!=true) WindowsWidth = 640;
     return true;
 }

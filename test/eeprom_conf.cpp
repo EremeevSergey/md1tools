@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTextStream>
+#include <QDebug>
 #include "eeprom_conf.h"
 #include "../core/core.h"
 #include "../common.h"
@@ -245,7 +246,7 @@ CEepromConfiguration::CEepromConfiguration(QWidget *parent) :
     tableView->setModel(Model);
     tableView->setItemDelegate(new QEepromDelegate(this));
     updateModel = true;
-    //connect (Printer,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)));
+    connect(&Printer,SIGNAL(signalCommandReady(int)),SLOT(slotCommandReady(int)),Qt::QueuedConnection);
 }
 
 CEepromConfiguration::~CEepromConfiguration()
@@ -257,13 +258,15 @@ void CEepromConfiguration::on_pbRefresh_clicked()
     Model->update();
 }
 
-void CEepromConfiguration::slotReady(const QString& name)
+void CEepromConfiguration::slotCommandReady (int cmd_type)
 {
-//    if (name == CEeProm::TaskName){
-//        if (updateModel==true)
-//            Model->update();
-//        updateModel = false;
-//    }
+//    qDebug() << "void CEepromConfiguration::slotCommandReady (int cmd_type)" << cmd_type;
+    if (cmd_type == EPrinterCommandsM205){
+//        qDebug() << "void CEepromConfiguration::slotCommandReady (int cmd_type)" << cmd_type;
+        if (updateModel==true)
+            Model->update();
+        updateModel = false;
+    }
 }
 
 void CEepromConfiguration::on_pbRead_clicked()

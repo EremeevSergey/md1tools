@@ -1,4 +1,5 @@
 #include <QStringList>
+#include <QDebug>
 #include "eeprom.h"
 
 /*****************************************************************************\
@@ -26,10 +27,12 @@ bool CEeProm::read  ()
 
 bool CEeProm::parsePrinterAnswer(const QString& input,EPrinterCommands cmd_type)
 {
+//    qDebug() << input;
     if (cmd_type==EPrinterCommandsM205){
         CEePromRecord* r = new CEePromRecord();
         if (r->FromString(input)) {
             ValueList.append(r);
+//            qDebug() << r->ToString();
             return true;
         }
         else

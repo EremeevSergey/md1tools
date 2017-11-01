@@ -43,9 +43,9 @@ void CBedWidgetBasic::Draw()
         painter.drawRect(ScaleRect(RectB));
         painter.drawRect(ScaleRect(RectC));
         // Названия рельс
-        ___DrawText (painter,RectA,"X");
-        ___DrawText (painter,RectC,"Y");
-        ___DrawText (painter,RectB,"Z");
+        ___DrawText (painter,RectA,"Tower A");
+        ___DrawText (painter,RectC,"Tower B");
+        ___DrawText (painter,RectB,"Tower C");
     }
     painter.end();
 }
@@ -75,7 +75,7 @@ void CBedWidgetBasic::calculateGeometry()
     double rail = rect_size*RAIL_SIZE;
     Xa = rect_size/2.0;
     Ya = rail;
-    RectA = QRectF(Xa-rail/2.0,0,rail,rail);
+    RectA = QRectF(Xa-rail,0,rail*2,rail);
     double radius = (rect_size - Ya)/2.0;
     planeRadius = radius-4.0;
     planeCenterX = Xa;
@@ -84,9 +84,9 @@ void CBedWidgetBasic::calculateGeometry()
     Yb = Ya + n*cos(M_PI/6.0);//cos(30)
     double m = n*sin(M_PI/6.0);
     Xb = Xa - m;
-    RectB = QRectF(Xb-rail,Yb,rail,rail);
+    RectB = QRectF(Xb-rail*2,Yb,rail*2,rail);
     Yc = Yb;
     Xc = Xa + m;
-    RectC = QRectF(Xc,Yc,rail,rail);
+    RectC = QRectF(Xc,Yc,rail*2,rail);
 }
 

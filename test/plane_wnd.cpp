@@ -562,9 +562,9 @@ void CPlaneWidget::showPrinter(QPainter& painter)
     painter.drawRect(RectB);//B(Y)
     painter.drawRect(RectC);//C(Z)
     painter.setPen(Qt::white);
-    painter.drawText(RectA,"X",Qt::AlignHCenter | Qt::AlignVCenter);//A(X)
-    painter.drawText(RectB,"Y",Qt::AlignHCenter | Qt::AlignVCenter);//B(Y)
-    painter.drawText(RectC,"Z",Qt::AlignHCenter | Qt::AlignVCenter);//C(Z)
+    painter.drawText(RectA,"Tower A",Qt::AlignHCenter | Qt::AlignVCenter);//A(X)
+    painter.drawText(RectB,"Tower B",Qt::AlignHCenter | Qt::AlignVCenter);//B(Y)
+    painter.drawText(RectC,"Tower C",Qt::AlignHCenter | Qt::AlignVCenter);//C(Z)
 }
 
 #define MAX_PROBE_DEVIATION 2.0

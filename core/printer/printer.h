@@ -35,7 +35,7 @@ public:
 public:
     CConnection*  Connection;
     CEeProm*      EEPROM;
-//    CExtruderSet* Extruders;
+    CExtruderSet* Extruders;
     TVertex       CurrentPosition;
     TVertex       ZProbe;
 public:
@@ -45,15 +45,19 @@ public:
     void        sendGoToXYZ        (double x,double y, double z);
     void        sendGetZProbeValue ();
     void        sendEmergencyReset ();
-    void        sendScript         (const QStringList&    list);
-    void        sendScript         (const CPrinterScript& list);
+    void        sendScript         (const QStringList&    list){__sendCommands(CPrinterScript(list),EPrinterCommandsNone);}
+    void        sendScript         (const CPrinterScript& list){__sendCommands(list,EPrinterCommandsNone);}
     void        setErrorString     (const QString& str,CBasePrinterObject* sender);
+    EPrinterCommands getLastCommanType(){ return LastCommandType;}
 protected:
-    EPrinterCommands CurrentCommandType;
-    EState           State;
-    bool             waitWait;
-    CPrinterScript   Script;
+    EPrinterCommands     CurrentCommandType;
+    EPrinterCommands     LastCommandType;
+    EState               State;
+    bool                 waitWait;
+    CPrinterScript       Script;
+    CPrinterCapabilities Capabilities;
 protected:
+    void        __creatExtruders  ();
     bool        parsePrinterAnswer(const QString& input,EPrinterCommands cmd_type);
     void        processOk         ();
     void        processWait       ();
@@ -67,6 +71,9 @@ signals:
     void        signalBusy             (const QString&);
     void        signalReady            (const QString&);
     void        signalNewPositionReady (const TVertex& ver);
+    void        signalCommandReady     (int cmd_type);
+    void        signalOpened  ();
+    void        signalClosed  ();
 protected slots:
     void        slotOpened    ();
     void        slotClosed    ();

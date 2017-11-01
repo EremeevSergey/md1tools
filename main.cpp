@@ -20,12 +20,12 @@ int main(int argc, char *argv[])
     w.resize(Config.WindowsWidth,Config.WindowsHeight);
 
     w.addTask(new CEepromConfiguration     ());
-    w.addTask(new CControlWindow           ());
-    w.addTask(new CPlaneWindow             ());
+    w.addTask(new CTestTerminal            ());
     w.addTask(new CEscher3dWindow          ());
+    w.addTask(new CPlaneWindow             ());
     w.addTask(new COpendactWnd             ());
 //    w.addTask(new CDeltaBedCalibrationTools());
-    w.addTask(new CTestTerminal            ());
+    w.addTask(new CControlWindow           ());
     w.setActiveTask();
 
     w.show();

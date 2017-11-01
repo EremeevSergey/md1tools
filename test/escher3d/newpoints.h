@@ -19,8 +19,9 @@ public:
     void      setX(float val);
     void      setY(float val);
     void      setZ(float val);
-    void      SetButtonVisible  (bool st);
-    void      SetButtonCheckable(bool st);
+    void      setEditable       (bool st);
+    void      setButtonVisible  (bool st);
+    void      setButtonCheckable(bool st);
     void      uncheckButton(){BushButton->setChecked(false);}
     bool      isButtonChecked(){return BushButton->isChecked();}
     QSize     sizeHint() const;
@@ -39,6 +40,7 @@ protected:
     void         Resize();
 signals:
     void    signalBPCliked();
+    void    signalValueChanged();
 protected slots:
     void    textChanged();
 };
@@ -59,6 +61,7 @@ public:
     float    getY(int pos);
     float    getZ(int pos);
     void     set (int pos,float x,float y,float z=qQNaN());
+    void     setEditable       (bool st);
     void     setButtonVisible  (bool st);
     void     setButtonCheckable(bool st);
     void     uncheckButtons();
@@ -69,8 +72,10 @@ protected:
     bool               ButtonCheckable;
 signals:
     void    signalBPCliked(int index);
+    void    signalValueChanged(int index);
 protected slots:
     void    slotBPCliked();
+    void    slotValueChanged();
 };
 
 #endif // NEWPOINTS_H

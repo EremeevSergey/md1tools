@@ -515,6 +515,7 @@ void COpendactWnd::initUi()
     QStringList ls; ls << "FSR" << "Z-Probe";
     comboBoxZMin    ->addItems(ls);
     comboBoxZMin    ->setCurrentText("Z-Probe");
+    comboBoxZMin    ->setEnabled(false);
 
     textAccuracy         ->setValue(0.01);
     textAccuracy2        ->setValue(0.035);
