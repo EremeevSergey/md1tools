@@ -209,6 +209,7 @@ void CEscher3dWindow::slotNewPositionReady(const TVertex &ver)
 {
     if (state!=Active)
         TableVertex->setZ(currectVertexIndex,-ver.Z);
+    updateControls();
 }
 
 void CEscher3dWindow::on_clearAllValues_clicked()
