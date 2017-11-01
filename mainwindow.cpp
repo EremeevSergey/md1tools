@@ -110,7 +110,7 @@ void MainWindow::updateActions()
     bool fl = Printer.Connection->isOpened();
     actOpenPort->setEnabled(!fl);
     actClosePort->setEnabled(fl);
-//    centralWindow->setEnabled(fl);
+    centralWindow->setEnabled(fl);
 }
 
 void MainWindow::slotUpdate   ()
@@ -168,15 +168,18 @@ void MainWindow::showActiveTask(const QString& name)
 {
     int count = centralWindow->layout()->count();
     if (count){
+        QString act_task;
         for (int i=0;i<count;i++){
             QWidget* wid = centralWindow->layout()->itemAt(i)->widget();
             if (wid) {
                 if (wid->windowTitle()==name){
-                    activeTaskName = name;
+                    act_task = name;
                     wid->setVisible(true);
                 }
                 else wid->setVisible(false);
-                wid->setEnabled(wid->windowTitle()==activeTaskName);
+                bool fl = (!activeTaskName.isEmpty() && wid->windowTitle()==activeTaskName) ||
+                           (activeTaskName.isEmpty() && wid->windowTitle()==act_task);
+                wid->setEnabled(fl);
             }
         }
     }
