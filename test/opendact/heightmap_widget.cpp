@@ -6,80 +6,34 @@
 #include <QDebug>
 #include <QtNumeric>
 
-CHeightmapWidget::CHeightmapWidget(QWidget *parent) :
-    QWidget(parent),Ui::Heightmap_widget()
+//---------------------------------------------------------------------------//
+//                      Кровать с величинами всех вершин                     //
+//---------------------------------------------------------------------------//
+CHeightmapWidget::CHeightmapWidget(QWidget *parent):
+    CBedWidgetBasic(parent)
 {
-    showButtons = false;
-    autoReadValues = false;
-    currentButton = EHomeAll;
-    minSize = size();
-    setupUi(this);
-    connect(leX    ,SIGNAL(editingFinished()),SLOT(textChanged()));
-    connect(leX_Opp,SIGNAL(editingFinished()),SLOT(textChanged()));
-    connect(leY    ,SIGNAL(editingFinished()),SLOT(textChanged()));
-    connect(leY_Opp,SIGNAL(editingFinished()),SLOT(textChanged()));
-    connect(leZ    ,SIGNAL(editingFinished()),SLOT(textChanged()));
-    connect(leZ_Opp,SIGNAL(editingFinished()),SLOT(textChanged()));
-
-    connect(pbX      ,SIGNAL(clicked()),SLOT(pbClicked()));
-    connect(pbX_Opp  ,SIGNAL(clicked()),SLOT(pbClicked()));
-    connect(pbY      ,SIGNAL(clicked()),SLOT(pbClicked()));
-    connect(pbY_Opp  ,SIGNAL(clicked()),SLOT(pbClicked()));
-    connect(pbZ      ,SIGNAL(clicked()),SLOT(pbClicked()));
-    connect(pbZ_Opp  ,SIGNAL(clicked()),SLOT(pbClicked()));
-    connect(pbHomeAll,SIGNAL(clicked()),SLOT(pbClicked()));
-
-    setEditable(false);
-    setShowButtons(false);
+    Caption  = new QLabel(this);
+    leX      = createLineEdit();
+    leX_Opp  = createLineEdit();
+    leY      = createLineEdit();
+    leY_Opp  = createLineEdit();
+    leZ      = createLineEdit();
+    leZ_Opp  = createLineEdit();
 }
 
-CHeightmapWidget::~CHeightmapWidget()
+QLineEdit* CHeightmapWidget::createLineEdit()
 {
-}
-
-void CHeightmapWidget::setEditable(bool b)
-{
-    leX    ->setReadOnly(!b);
-    leX_Opp->setReadOnly(!b);
-    leY    ->setReadOnly(!b);
-    leY_Opp->setReadOnly(!b);
-    leZ    ->setReadOnly(!b);
-    leZ_Opp->setReadOnly(!b);
-}
-
-void CHeightmapWidget::setShowButtons(bool b)
-{
-    showButtons = b;
-    pbX      ->setVisible(b);
-    pbX_Opp  ->setVisible(b);
-    pbY      ->setVisible(b);
-    pbY_Opp  ->setVisible(b);
-    pbZ      ->setVisible(b);
-    pbZ_Opp  ->setVisible(b);
-    pbHomeAll->setVisible(b);
-    dsbZOffset->setVisible(b);
-}
-
-void CHeightmapWidget::resizeEvent(QResizeEvent* event)
-{
-    QWidget::resizeEvent(event);
-}
-
-void CHeightmapWidget::paintEvent(QPaintEvent * event)
-{
-    QWidget::paintEvent(event);
-    QPainter painter;
-    painter.begin(this);{
-        updateUi(&painter);
-    }
-    painter.end();
-}
-
-
-QSize CHeightmapWidget::sizeHint() const
-{
-    return QSize(50,50);//QWidget::sizeHint();
-    //    return minSize;
+    QLineEdit* le = new QLineEdit(this);
+    le->setText("-10.000");
+    le->setReadOnly(true);
+    le->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    le->setFrame(false);
+    le->setMaxLength(7);
+    QFontMetrics fm = le->fontMetrics();
+    QRectF r= fm.boundingRect(le->text());
+    r.moveTopLeft(QPoint(0,0));
+    le->setGeometry(r.x(),r.y(),r.width()*1.2,r.height()*1.2);
+    return le;
 }
 
 void CHeightmapWidget::SetName(const QString& name)
@@ -90,6 +44,16 @@ void CHeightmapWidget::SetName(const QString& name)
     r.moveTopLeft(QPoint(0,0));
     Caption->setGeometry(r);
     repaint();
+}
+
+void CHeightmapWidget::SetHeights(float X,float Xopp,float Y,float Yopp,float Z,float Zopp)
+{
+    setHeight(X,leX);
+    setHeight(Xopp,leX_Opp);
+    setHeight(Y,leY);
+    setHeight(Yopp,leY_Opp);
+    setHeight(Z,leZ);
+    setHeight(Zopp,leZ_Opp);
 }
 
 void CHeightmapWidget::setHeight(float X,QLineEdit* le)
@@ -103,137 +67,149 @@ void CHeightmapWidget::setHeight(float X,QLineEdit* le)
         else if (X>0) palette.setColor(QPalette::Base, Qt::green);
         else          palette.setColor(QPalette::Base, Qt::white);
         le->setText(QString::number(X,'f',3));
-//        le->setModified(editable);
     }
     le->setPalette(palette);
 }
 
-void CHeightmapWidget::SetHeights(float X,float Xopp,float Y,float Yopp,float Z,float Zopp)
+float CHeightmapWidget::getValue(QLineEdit* le)
 {
-    setHeight(X,leX);
-    setHeight(Xopp,leX_Opp);
-    setHeight(Y,leY);
-    setHeight(Yopp,leY_Opp);
-    setHeight(Z,leZ);
-    setHeight(Zopp,leZ_Opp);
+    if (le){
+        bool b;
+        double f = le->text().toDouble(&b);
+        if (!b) f = qQNaN();
+        return f;
+    }
+    return qQNaN();
 }
 
-
-#define CIRCLE_OFFSET 2
-
-float cos30 = cos(M_PI/6);
-float sin30 = sin(M_PI/6);
-float cos60 = cos(M_PI/3);
-float sin60 = sin(M_PI/3);
-float sqr3  = sqrt(3);
-void CHeightmapWidget::updateUi(QPainter* painter)
+void CHeightmapWidget::updateUi   ()
 {
-    float w = width();
-    float h = height();
-    QSizeF sizeLe = getLineEditSize(painter,leX);
-    center = QPointF(w/2,h/2);
-    pbHomeAll->setGeometry(0,h-sizeLe.height(),pbHomeAll->width(),sizeLe.height());
-    dsbZOffset->setGeometry(w/2 - dsbZOffset->width()/2,h/2-dsbZOffset->height()/2,dsbZOffset->width(),dsbZOffset->height());
-    float b;
-    float x;
-    float y;
-    if (!showButtons){
-        b = (height()-sizeLe.height()*2.0)/2.0;
-        x = center.x()-sizeLe.width();
-        y = b*cos60;
-        leX    ->setGeometry(center.x()-sizeLe.width()/2,0,
-                             sizeLe.width(),sizeLe.height());
-        leX_Opp->setGeometry(center.x()-sizeLe.width()/2,height()-sizeLe.height(),
-                             sizeLe.width(),sizeLe.height());
+    Caption->move(0,0);
 
-        leZ_Opp->setGeometry(0,center.y()-y-sizeLe.height(),
-                             sizeLe.width(),sizeLe.height());
-        leY_Opp->setGeometry(w - sizeLe.width(),center.y()-y-sizeLe.height(),
-                             sizeLe.width(),sizeLe.height());
-        leY    ->setGeometry(0,center.y()+y,
-                             sizeLe.width(),sizeLe.height());
-        leZ    ->setGeometry(w - sizeLe.width(),center.y()+y,
-                             sizeLe.width(),sizeLe.height());
-    }
-    else{
-        int wid = sizeLe.width()+sizeLe.height();
-        b = (height()-sizeLe.height()*2.0)/2.0;
-        x = center.x()-wid;
-        y = b*cos60;
-        leX    ->setGeometry(center.x()-wid/2,0,
-                             sizeLe.width(),sizeLe.height());
-        leX_Opp->setGeometry(center.x()-wid/2,height()-sizeLe.height(),
-                             sizeLe.width(),sizeLe.height());
-        pbX    ->setGeometry(center.x()-wid/2+sizeLe.width(),0,
-                             sizeLe.height(),sizeLe.height());
-        pbX_Opp->setGeometry(center.x()-wid/2+sizeLe.width(),height()-sizeLe.height(),
-                             sizeLe.height(),sizeLe.height());
-
-        leZ_Opp->setGeometry(0,center.y()-y-sizeLe.height(),
-                             sizeLe.width(),sizeLe.height());
-        leY_Opp->setGeometry(w - wid,center.y()-y-sizeLe.height(),
-                             sizeLe.width(),sizeLe.height());
-        pbZ_Opp->setGeometry(sizeLe.width(),center.y()-y-sizeLe.height(),
-                             sizeLe.height(),sizeLe.height());
-        pbY_Opp->setGeometry(w - wid + sizeLe.width(),center.y()-y-sizeLe.height(),
-                             sizeLe.height(),sizeLe.height());
-
-        leY    ->setGeometry(0,center.y()+y,
-                             sizeLe.width(),sizeLe.height());
-        leZ    ->setGeometry(w - wid,center.y()+y,
-                             sizeLe.width(),sizeLe.height());
-        pbY    ->setGeometry(sizeLe.width(),center.y()+y,
-                             sizeLe.height(),sizeLe.height());
-        pbZ    ->setGeometry(w - wid + sizeLe.width(),center.y()+y,
-                             sizeLe.height(),sizeLe.height());
-
-    }
-    float a = sqrt(b*b*x*x/(b*b-y*y));
-    QRectF rect(center.x()-a +2,center.y()-b +2,a*2 -4,b*2 -4);
-    drawCircle(painter,rect);
+    leX->setGeometry(QRect(RectA));
+    leY->setGeometry(QRect(RectB));
+    leZ->setGeometry(QRect(RectC));
+    leX_Opp->setGeometry(QRect(RectAOpp));
+    leY_Opp->setGeometry(QRect(RectBOpp));
+    leZ_Opp->setGeometry(QRect(RectCOpp));
 }
 
-void CHeightmapWidget::drawCircle (QPainter* painter,const QRectF& rec)
+QSizeF CHeightmapWidget::__getRailSize() const
 {
+    return leX->size();
+}
+
+void CHeightmapWidget::draw(QPainter& painter)
+{
+    QRectF rec = getBedRect();
+
     QPen pen(Qt::black);
     pen.setWidth(2);
-    painter->setPen(pen);
-    float x,y,a,b;
-    a = rec.width()/2;
-    b = rec.height()/2;
-    y = b*cos60;
-    x = sqrt(a*a*(1-y*y/(b*b)));
-    painter->drawLine(rec.left()+a  ,rec.top(),
-                      rec.left()+a-x,rec.top()+b+y);
-    painter->drawLine(rec.left()+a-x,rec.top()+b+y,
-                      rec.left()+a+x,rec.top()+b+y);
-    painter->drawLine(rec.left()+a  ,rec.top(),
-                      rec.left()+a+x,rec.top()+b+y);
+    painter.setPen(pen);
+    QPointF a    = fromPolarToScreen(getBedRadius(),-150.0/180.0*M_PI); //120+90=210=-150
+    QPointF b    = fromPolarToScreen(getBedRadius(), -30.0/180.0*M_PI); //120+90=210=-150
+    QPointF c    = fromPolarToScreen(getBedRadius(),  90.0/180.0*M_PI); //90
+    painter.drawLine(a,b);
+    painter.drawLine(b,c);
+    painter.drawLine(c,a);
+
+    QPointF aopp = fromPolarToScreen(getBedRadius(),  30.0/180.0*M_PI); //30
+    QPointF bopp = fromPolarToScreen(getBedRadius(), 150.0/180.0*M_PI); //30
+    QPointF copp = fromPolarToScreen(getBedRadius(), -90.0/180.0*M_PI); //-90
     pen.setWidth(1);
     pen.setColor(Qt::gray);
-    painter->setPen(pen);
-    painter->drawLine(rec.left()+a  ,rec.top()+b+b,
-                      rec.left()+a-x,rec.top()+b-y);
-    painter->drawLine(rec.left()+a-x,rec.top()+b-y,
-                      rec.left()+a+x,rec.top()+b-y);
-    painter->drawLine(rec.left()+a  ,rec.top()+b+b,
-                      rec.left()+a+x,rec.top()+b-y);
+    painter.setPen(pen);
+    painter.drawLine(aopp,bopp);
+    painter.drawLine(bopp,copp);
+    painter.drawLine(copp,aopp);
+
     pen.setColor(Qt::black);
     pen.setWidth(3);
-    painter->setPen(pen);
-    painter->drawArc(rec,0,5760);
+    painter.setPen(pen);
+    painter.drawArc(rec,0,5760);
 }
 
-QSizeF CHeightmapWidget::getLineEditSize(QPainter *painter, QLineEdit* le)
+
+//---------------------------------------------------------------------------//
+//        Кровать с величинами всех вершин для ручной регулировки            //
+//---------------------------------------------------------------------------//
+CManualHeightmapWidget::CManualHeightmapWidget(QWidget *parent):
+    CHeightmapWidget(parent)
 {
-//    QPainter painter;
-    QSizeF s = le->size();
-    QFontMetrics fm = painter->fontMetrics();
-    s.setWidth(fm.boundingRect(le->text()).width()+12);
-    return s;
+    showButtons = false;
+    autoReadValues = false;
+    currentButton = EHomeAll;
+    pbX     = createPushButton();
+    pbX_Opp = createPushButton();
+    pbY     = createPushButton();
+    pbY_Opp = createPushButton();
+    pbZ     = createPushButton();
+    pbZ_Opp = createPushButton();
+    pbHomeAll = new QPushButton(this);
+    pbHomeAll->setText("Home All");
+    QFontMetrics fm = pbHomeAll->fontMetrics();
+    QRect r= fm.boundingRect(pbHomeAll->text());
+    r.moveTopLeft(QPoint(0,0));
+    pbHomeAll->setGeometry(r.x(),r.y(),r.width()*1.2,r.height()*1.2);
+    connect(pbHomeAll,SIGNAL(clicked()),SLOT(pbClicked()));
+
+    dsbZOffset = new QDoubleSpinBox(this);
+    dsbZOffset->setMinimum(0.0);
+    dsbZOffset->setMaximum(100.0);
+    dsbZOffset->setValue(20.0);
+    dsbZOffset->setSingleStep(0.01);
+    dsbZOffset->setDecimals(2);
+    dsbZOffset->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Fixed);
+
+    connect(leX    ,SIGNAL(editingFinished()),SLOT(textChanged()));
+    connect(leX_Opp,SIGNAL(editingFinished()),SLOT(textChanged()));
+    connect(leY    ,SIGNAL(editingFinished()),SLOT(textChanged()));
+    connect(leY_Opp,SIGNAL(editingFinished()),SLOT(textChanged()));
+    connect(leZ    ,SIGNAL(editingFinished()),SLOT(textChanged()));
+    connect(leZ_Opp,SIGNAL(editingFinished()),SLOT(textChanged()));
+
+    setEditable(false);
+    setShowButtons(false);
 }
 
-void CHeightmapWidget::textChanged()
+QPushButton* CManualHeightmapWidget::createPushButton()
+{
+    QPushButton* pb = new QPushButton(this);
+    pb->setText("");
+    connect(pb,SIGNAL(clicked()),SLOT(pbClicked()));
+    return pb;
+}
+
+QSizeF CManualHeightmapWidget::__getRailSize() const
+{
+    QSizeF s = leX->size();
+    return QSizeF(s.width()+s.height(),s.height());
+}
+
+void CManualHeightmapWidget::updateUi ()
+{
+    CHeightmapWidget::updateUi();
+    leX->setGeometry(getLineEditRect(RectA));
+    leY->setGeometry(getLineEditRect(RectB));
+    leZ->setGeometry(getLineEditRect(RectC));
+    leX_Opp->setGeometry(getLineEditRect(RectAOpp));
+    leY_Opp->setGeometry(getLineEditRect(RectBOpp));
+    leZ_Opp->setGeometry(getLineEditRect(RectCOpp));
+
+    pbX->setGeometry(getPushButtonRect(RectA));
+    pbY->setGeometry(getPushButtonRect(RectB));
+    pbZ->setGeometry(getPushButtonRect(RectC));
+    pbX_Opp->setGeometry(getPushButtonRect(RectAOpp));
+    pbY_Opp->setGeometry(getPushButtonRect(RectBOpp));
+    pbZ_Opp->setGeometry(getPushButtonRect(RectCOpp));
+
+    pbHomeAll->setGeometry(0,height()-leX->height(),pbHomeAll->width(),leX->height());
+    dsbZOffset->setGeometry(width()/2  - dsbZOffset->width()/2,
+                            height()/2 - dsbZOffset->height()/2,
+                            dsbZOffset->width(),dsbZOffset->height());
+}
+
+void CManualHeightmapWidget::textChanged()
 {
 //    qDebug() << "textChanged()";
     QLineEdit* le = qobject_cast<QLineEdit*>(sender());
@@ -249,18 +225,7 @@ void CHeightmapWidget::textChanged()
     }
 }
 
-float CHeightmapWidget::getValue(QLineEdit* le)
-{
-    if (le){
-        bool b;
-        double f = le->text().toDouble(&b);
-        if (!b) f = qQNaN();
-        return f;
-    }
-    return qQNaN();
-}
-
-void CHeightmapWidget::pbClicked()
+void CManualHeightmapWidget::pbClicked()
 {
     qDebug() << "pbClicked()";
     if      (sender() == pbX)     currentButton = EX;
@@ -283,7 +248,7 @@ void CHeightmapWidget::pbClicked()
                 if (pbY_Opp!=pb) pbY_Opp->setChecked(false);
                 if (pbZ    !=pb) pbZ    ->setChecked(false);
                 if (pbZ_Opp!=pb) pbZ_Opp->setChecked(false);
-                qDebug() << "pbClicked() - checked";
+//                qDebug() << "pbClicked() - checked";
                 emit pushButtonClicked(currentButton);
             }
             else{
@@ -300,7 +265,7 @@ void CHeightmapWidget::pbClicked()
     }
 }
 
-void CHeightmapWidget::setAutoReadValues(bool val)
+void CManualHeightmapWidget::setAutoReadValues(bool val)
 {
     autoReadValues = val;
     pbX->setCheckable(autoReadValues);
@@ -318,7 +283,7 @@ void CHeightmapWidget::setAutoReadValues(bool val)
     currentButton=EHomeAll;
 }
 
-void CHeightmapWidget::on_NewValue(float val)
+void CManualHeightmapWidget::on_NewValue(float val)
 {
     if (autoReadValues){
         if      (currentButton == EX)    setHeight(-val,leX);
@@ -328,4 +293,27 @@ void CHeightmapWidget::on_NewValue(float val)
         else if (currentButton == EZ)    setHeight(-val,leZ);
         else if (currentButton == EZOpp) setHeight(-val,leZ_Opp);
     }
+}
+
+void CManualHeightmapWidget::setEditable(bool b)
+{
+    leX    ->setReadOnly(!b);
+    leX_Opp->setReadOnly(!b);
+    leY    ->setReadOnly(!b);
+    leY_Opp->setReadOnly(!b);
+    leZ    ->setReadOnly(!b);
+    leZ_Opp->setReadOnly(!b);
+}
+
+void CManualHeightmapWidget::setShowButtons(bool b)
+{
+    showButtons = b;
+    pbX      ->setVisible(b);
+    pbX_Opp  ->setVisible(b);
+    pbY      ->setVisible(b);
+    pbY_Opp  ->setVisible(b);
+    pbZ      ->setVisible(b);
+    pbZ_Opp  ->setVisible(b);
+    pbHomeAll->setVisible(b);
+    dsbZOffset->setVisible(b);
 }

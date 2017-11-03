@@ -42,9 +42,10 @@ SOURCES += main.cpp\
     core/printer/printer_object.cpp \
     core/printer/commands.cpp \
     test/control/control_wnd.cpp \
-    gui/widgets/bed_widget.cpp \
     gui/widgets/termwidget.cpp \
-    gui/widgets/up_down_widget.cpp
+    gui/widgets/up_down_widget.cpp \
+    gui/widgets/beds/bed_basic_widget.cpp \
+    gui/widgets/beds/bed_widget.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -77,9 +78,10 @@ HEADERS  += mainwindow.h \
     core/printer/printer_object.h \
     core/printer/commands.h \
     test/control/control_wnd.h \
-    gui/widgets/bed_widget.h \
     gui/widgets/termwidget.h \
-    gui/widgets/up_down_widget.h
+    gui/widgets/up_down_widget.h \
+    gui/widgets/beds/bed_basic_widget.h \
+    gui/widgets/beds/bed_widget.h
 
 RESOURCES += \
     gui/images/images.qrc
@@ -91,7 +93,6 @@ FORMS += \
     test/terminal.ui \
     test/eeprom_conf.ui \
     test/opendact/opendact_wnd.ui \
-    test/opendact/heightmap_widget.ui \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.ui \
     test/control/control_wnd.ui
 

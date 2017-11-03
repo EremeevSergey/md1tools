@@ -3,11 +3,16 @@
 #include <QFontMetrics>
 #include "pluginsbar.h"
 
-#define IMAGE_SIZE_X 32
-#define IMAGE_SIZE_Y 32
+#define IMAGE_SIZE_X 28
+#define IMAGE_SIZE_Y 28
 
-#define BUTTON_SIZE_X 112
-#define BUTTON_SIZE_Y 112
+#define BUTTON_SIZE_X 96
+#define BUTTON_SIZE_Y 96
+//#define IMAGE_SIZE_X 32
+//#define IMAGE_SIZE_Y 32
+
+//#define BUTTON_SIZE_X 112
+//#define BUTTON_SIZE_Y 112
 #define BUTTON_UP_DOWN_SIZE_Y 16
 
 /*****************************************************************************\

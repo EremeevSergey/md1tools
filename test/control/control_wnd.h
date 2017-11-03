@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QList>
 #include "../../gui/basewnd.h"
-#include "../../gui/widgets/bed_widget.h"
+#include "../../gui/widgets/beds/bed_widget.h"
 #include "../../gui/widgets/up_down_widget.h"
 #include "../../core/core.h"
 
@@ -21,7 +21,7 @@ public:
     ~CControlWindow();
     void             updateExtruders();
 protected:
-    CBedWidgetBasic*      BedWidget;
+    CBlackBedWidget*      BedWidget;
     CUpDownWidget*        XControl;
     CUpDownWidget*        YControl;
     CUpDownWidget*        ZControl;

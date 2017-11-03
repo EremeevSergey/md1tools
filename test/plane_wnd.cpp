@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QDebug>
 #include "plane_wnd.h"
 #include "../common.h"
 
@@ -16,7 +17,7 @@
 *                                                                             *
 \*****************************************************************************/
 
-void CPlaneWindow::slotCommandExecuted()
+void CPlaneWindow::slotCommandExecuted(int)
 {
     mainLoop();
 }
@@ -57,6 +58,7 @@ void CPlaneWindow::on_pbStop_clicked()
 
 void CPlaneWindow::mainLoop()
 {
+    qDebug() << "void CPlaneWindow::mainLoop()" << state ;
     switch (state) {
     case Active:
         activeLoop();
@@ -76,6 +78,7 @@ void CPlaneWindow::mainLoop()
 
 void CPlaneWindow::activeLoop()
 {
+    qDebug() << "void CPlaneWindow::activeLoop()" << state << step;
     TVertex ver;
     double z;
     switch (step){
@@ -122,7 +125,8 @@ CPlaneWindow::CPlaneWindow(QWidget *parent) :
     sbMeshSize->setValue(Plane->getMeshSize());
     ZScaleSlider->setValue((int)(Plane->getZScale())-1);
     leZScale->setText(QString::number(Plane->getZScale(),'f',1));
-    connect (&Printer,SIGNAL(signalCommandExecuted()),this,SLOT(slotCommandExecuted()));
+    connect (&Printer,SIGNAL(signalCommandReady(int)),
+             SLOT(slotCommandExecuted(int)),Qt::QueuedConnection);
     updateControls();
 }
 
@@ -228,11 +232,13 @@ void CPlaneWindow::on_dsbHeight_valueChanged(double arg1)
 
 bool CPlaneWindow::gotoxyz()
 {
+    qDebug() << "bool CPlaneWindow::gotoxyz()" << Plane->count() << currentVertexIndex;
     int count = Plane->count();
     if (count>currentVertexIndex){
         TVertex ver = Plane->at(currentVertexIndex);
         ver.Z = dsbHeight->value();
         step = GoToXYZ;
+        qDebug() << "Printer.sendGoToXYZ(ver.X,ver.Y,ver.Z)" << ver.X << ver.Y << ver.Z;
         Printer.sendGoToXYZ(ver.X,ver.Y,ver.Z);
         return true;
     }

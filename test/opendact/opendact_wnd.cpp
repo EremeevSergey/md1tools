@@ -436,17 +436,19 @@ COpendactWnd::COpendactWnd(QWidget *parent) :
     connect (&OpenDACT,SIGNAL(signalLogConsole(QString)),SLOT(slotLogConsole(QString)));
     connect (&OpenDACT,SIGNAL(signalLogConsole(QString,Qt::GlobalColor)),SLOT(slotLogConsole(QString,Qt::GlobalColor)));
     connect (&OpenDACT,SIGNAL(signalSetAccuracyPoint(int,float)),SLOT(slotSetAccuracyPoint(int,float)));
-    connect (&Printer,SIGNAL(signalCommandExecuted()),this,SLOT(slotCommandExecuted()),Qt::QueuedConnection);
+    connect (&Printer,SIGNAL(signalCommandReady(int)),this,SLOT(slotCommandExecuted(int)),Qt::QueuedConnection);
+    connect (&Printer      ,SIGNAL(signalNewPositionReady(TVertex)),SLOT(slotNewPosition(TVertex)));
     connect (&Printer      ,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)),Qt::QueuedConnection);
-    connect (&Printer      ,SIGNAL(signalNewPosition(TVertex)),SLOT(slotNewPosition(TVertex)));
-//--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)),Qt::QueuedConnection);
     connect (this,SIGNAL(signalNextStep()),SLOT(slotCommandExecuted()),Qt::QueuedConnection);
-    connect (InputHeightMap,SIGNAL(pushButtonClicked(CHeightmapWidget::EBushButtons)),SLOT(onInputPushButtonClicked(CHeightmapWidget::EBushButtons)));
+    connect (InputHeightMap,SIGNAL(pushButtonClicked(CManualHeightmapWidget::EBushButtons)),
+             SLOT(onInputPushButtonClicked(CManualHeightmapWidget::EBushButtons)));
     connect (autoCheckBox,SIGNAL(clicked(bool)),SLOT(on_autoCheckBox(bool)));
     iteration           = 0;
     currentPosition     = 0;
     checkHeightsOnly    = false;
     updateControls();
+
+    //--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)),Qt::QueuedConnection);
 }
 
 COpendactWnd::~COpendactWnd()
@@ -455,7 +457,7 @@ COpendactWnd::~COpendactWnd()
 
 void COpendactWnd::initUi()
 {
-    InputHeightMap    = new CHeightmapWidget();
+    InputHeightMap    = new CManualHeightmapWidget();
     InputHeightMap->SetName("Input:");
     InputHeightMap->SetHeights(-0.2,0.06,0.06,-0.41,-0.14,0.03);
     InputHeightMap->setEditable(true);
@@ -476,26 +478,6 @@ void COpendactWnd::initUi()
     FirstHeightMap   = new CHeightmapWidget();
     CurrentHeightMap = new CHeightmapWidget();
     accuracyTime     = new C2dChart();
-    //    0   0.0366669
-    //    1   0.0250092
-//    0   0.0299988
-//    1   0.0316518
-
-//    accuracyTime->append(TIntFloatPoint(0,0.0));
-//    accuracyTime->append(TIntFloatPoint(1,0.026));
-//    accuracyTime->append(TIntFloatPoint(2,0.030));
-
-//    accuracyTime->append(TIntFloatPoint(3,2));
-//    accuracyTime->append(TIntFloatPoint(2,3.5));
-//    accuracyTime->append(TIntFloatPoint(4,1.5));
-//    accuracyTime->append(TIntFloatPoint(5,1.2));
-//    accuracyTime->append(TIntFloatPoint(6,1.2));
-//    accuracyTime->append(TIntFloatPoint(7,1.2));
-//    accuracyTime->append(TIntFloatPoint(8,1.2));
-//    accuracyTime->append(TIntFloatPoint(9,1.2));
-////    accuracyTime->append(TIntFloatPoint(10,1.2));
-////    accuracyTime->append(TIntFloatPoint(11,1.2));
-////    accuracyTime->append(TIntFloatPoint(12,1.2));
 
     heightMapsLayout->addWidget(FirstHeightMap);
     heightMapsLayout->addWidget(CurrentHeightMap);
@@ -593,6 +575,25 @@ void COpendactWnd::setEEPROMGUIList()
         DCText         ->setValue(EEPROM.DC);
 }
 
+void COpendactWnd::getEEPROMGUIList()
+{
+        EEPROM.stepsPerMM   = stepsPerMMText ->value();
+        EEPROM.zMaxLength   = zMaxLengthText ->value();
+        EEPROM.zProbeHeight = zProbeText     ->value();
+        EEPROM.zProbeSpeed  = zProbeSpeedText->value();
+        EEPROM.diagonalRod  = diagonalRod    ->value();
+        EEPROM.HRadius      = HRadiusText    ->value();
+        EEPROM.offsetX      = offsetXText    ->value();
+        EEPROM.offsetY      = offsetYText    ->value();
+        EEPROM.offsetZ      = offsetZText    ->value();
+        EEPROM.A            = AText          ->value();
+        EEPROM.B            = BText          ->value();
+        EEPROM.C            = CText          ->value();
+        EEPROM.DA           = DAText         ->value();
+        EEPROM.DB           = DBText         ->value();
+        EEPROM.DC           = DCText         ->value();
+}
+
 void COpendactWnd::setUserVariables()
 {
     UserVariables.calculationAccuracy = textAccuracy->value();
@@ -650,11 +651,8 @@ void COpendactWnd::slotLogConsole (const QString& str, Qt::GlobalColor color)
 
 void COpendactWnd::slotSetAccuracyPoint(int iteration_num, float temp_accuracy)
 {
-//    Q_UNUSED(iteration_num)
-//    Q_UNUSED(temp_accuracy)
-
     accuracyTime->append(TIntFloatPoint(iteration_num,temp_accuracy));
-    qDebug() << iteration_num << " " << temp_accuracy;
+//    qDebug() << iteration_num << " " << temp_accuracy;
 }
 
 
@@ -671,16 +669,15 @@ void COpendactWnd::setHeightsInvoke()
 }
 
 
-void COpendactWnd::slotCommandExecuted ()
+void COpendactWnd::slotCommandExecuted (int cmd)
 {
+    Q_UNUSED(cmd);
     mainLoop();
-    //OpenDACT.handleInput();
 }
 
 void COpendactWnd::slotReady (const QString&)
 {
     mainLoop();
-    //OpenDACT.handleInput();
 }
 
 void COpendactWnd::updateControls()
@@ -721,7 +718,7 @@ void COpendactWnd::updateControls()
 
     textPlateDiameter->setEnabled(main);
     diagonalRodLengthText->setEnabled(main);
-    comboBoxZMin->setEnabled(main);
+//    comboBoxZMin->setEnabled(main);
     tab->setEnabled(main);
 
     if (!checkHeightsOnly) {
@@ -796,17 +793,8 @@ void COpendactWnd::on_readEepromMan_clicked()
     delRadCMan->setValue(EEPROM.DC);
 }
 
-void COpendactWnd::on_manualCalibrateBut_clicked()
+void COpendactWnd::getManualEEPROMGUIList()
 {
-    slotLogConsole("Manual calibration.",Qt::blue);
-    setUserVariables();
-    Heights.X   =InputHeightMap->getX();
-    Heights.XOpp=InputHeightMap->getXOpp();
-    Heights.Y   =InputHeightMap->getY();
-    Heights.YOpp=InputHeightMap->getYOpp();
-    Heights.Z   =InputHeightMap->getZ();
-    Heights.ZOpp=InputHeightMap->getZOpp();
-
     EEPROM.stepsPerMM   = spmMan->value();
     EEPROM.tempSPM      = spmMan->value();
     EEPROM.zMaxLength   = zMaxMan->value();
@@ -823,6 +811,20 @@ void COpendactWnd::on_manualCalibrateBut_clicked()
     EEPROM.DA           = delRadAMan->value();
     EEPROM.DB           = delRadBMan->value();
     EEPROM.DC           = delRadCMan->value();
+}
+
+void COpendactWnd::on_manualCalibrateBut_clicked()
+{
+    slotLogConsole("Manual calibration.",Qt::blue);
+    setUserVariables();
+    Heights.X   =InputHeightMap->getX();
+    Heights.XOpp=InputHeightMap->getXOpp();
+    Heights.Y   =InputHeightMap->getY();
+    Heights.YOpp=InputHeightMap->getYOpp();
+    Heights.Z   =InputHeightMap->getZ();
+    Heights.ZOpp=InputHeightMap->getZOpp();
+
+    getManualEEPROMGUIList();
     OpenDACT.basicCalibration();
 
     //set eeprom vals in manual calibration
@@ -842,18 +844,10 @@ void COpendactWnd::on_manualCalibrateBut_clicked()
     delRadBMan->setValue(EEPROM.DB);
     delRadCMan->setValue(EEPROM.DC);
 
-    //set expected height map
     ExpectedHeightMap->SetHeights(Heights.X,Heights.XOpp,Heights.Y,Heights.YOpp,Heights.Z,Heights.ZOpp);
-//    this.xExp.Text = Heights.X.ToString();
-//    this.xOppExp.Text = Heights.XOpp.ToString();
-//    this.yExp.Text = Heights.Y.ToString();
-//    this.yOppExp.Text = Heights.YOpp.ToString();
-//    this.zExp.Text = Heights.Z.ToString();
-//    this.zOppExp.Text = Heights.ZOpp.ToString();
-
 }
 
-void COpendactWnd::onInputPushButtonClicked(CHeightmapWidget::EBushButtons but)
+void COpendactWnd::onInputPushButtonClicked(CManualHeightmapWidget::EBushButtons but)
 {
     float plateDiameter = textPlateDiameter->value();
     float probingHeight = InputHeightMap->getZOffset();
@@ -862,25 +856,25 @@ void COpendactWnd::onInputPushButtonClicked(CHeightmapWidget::EBushButtons but)
     float valueZ = 0.482F * plateDiameter;
 //    qDebug() << but;
     switch (but) {
-    case CHeightmapWidget::EHomeAll:
+    case CManualHeightmapWidget::EHomeAll:
         Printer.sendGoHomeAll();
         break;
-    case CHeightmapWidget::EX:
+    case CManualHeightmapWidget::EX:
         Printer.sendGoToXYZ(-valueXYLarge,-valueXYSmall,probingHeight);
         break;
-    case CHeightmapWidget::EXOpp:
+    case CManualHeightmapWidget::EXOpp:
         Printer.sendGoToXYZ(valueXYLarge,valueXYSmall,probingHeight);
         break;
-    case CHeightmapWidget::EY:
+    case CManualHeightmapWidget::EY:
         Printer.sendGoToXYZ(valueXYLarge,-valueXYSmall,probingHeight);
         break;
-    case CHeightmapWidget::EYOpp:
+    case CManualHeightmapWidget::EYOpp:
         Printer.sendGoToXYZ(-valueXYLarge,valueXYSmall,probingHeight);
         break;
-    case CHeightmapWidget::EZ:
+    case CManualHeightmapWidget::EZ:
         Printer.sendGoToXYZ(0,valueZ,probingHeight);
         break;
-    case CHeightmapWidget::EZOpp:
+    case CManualHeightmapWidget::EZOpp:
         Printer.sendGoToXYZ(0,-valueZ,probingHeight);
         break;
     default:
@@ -890,6 +884,7 @@ void COpendactWnd::onInputPushButtonClicked(CHeightmapWidget::EBushButtons but)
 
 void COpendactWnd::on_sendEepromMan_clicked()
 {
+    getManualEEPROMGUIList();
     EEPROM.sendEEPROM();
 }
 
@@ -904,3 +899,15 @@ void COpendactWnd::slotNewPosition(const TVertex& ver)
     InputHeightMap->on_NewValue(ver.Z);
 }
 
+
+void COpendactWnd::on_readEEPROM_clicked()
+{
+    EEPROM.readEEPROM();
+    setEEPROMGUIList();
+}
+
+void COpendactWnd::on_sendEEPROMButton_clicked()
+{
+    getEEPROMGUIList();
+    EEPROM.sendEEPROM();
+}

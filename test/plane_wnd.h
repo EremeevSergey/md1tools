@@ -82,7 +82,7 @@ protected:
     void mainLoop      ();
     void activeLoop    ();
 private slots:
-    void slotCommandExecuted();
+    void slotCommandExecuted(int);
     void on_dsbRadius_valueChanged(double arg1);
     void on_dsbHeight_valueChanged(double arg1);
     void on_sbMeshSize_valueChanged(int arg1);

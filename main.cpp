@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
     w.addTask(new CEepromConfiguration     ());
     w.addTask(new CTestTerminal            ());
     w.addTask(new CEscher3dWindow          ());
-    w.addTask(new CPlaneWindow             ());
     w.addTask(new COpendactWnd             ());
+    w.addTask(new CPlaneWindow             ());
 //    w.addTask(new CDeltaBedCalibrationTools());
     w.addTask(new CControlWindow           ());
     w.setActiveTask();

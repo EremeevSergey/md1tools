@@ -16,6 +16,7 @@ CUpDownWidget::CUpDownWidget(const QString &name, QWidget *parent) : QFrame(pare
     step->setMaximum(20.0);
     step->setValue(1.0);
     step->setSingleStep(0.01);
+    step->setDecimals(2);
     step->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Fixed);
 
     upButton   = new QToolButton();

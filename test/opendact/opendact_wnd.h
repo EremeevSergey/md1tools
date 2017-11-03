@@ -32,14 +32,16 @@ protected:
 protected:
     void setButtonValues ();
     void setEEPROMGUIList();
+    void getEEPROMGUIList();
+    void getManualEEPROMGUIList();
     void setUserVariables();
     void setHeightsInvoke();
 protected:
     CHeightmapWidget *FirstHeightMap;
     CHeightmapWidget *CurrentHeightMap;
 
-    CHeightmapWidget *InputHeightMap;
-    CHeightmapWidget *ExpectedHeightMap;
+    CManualHeightmapWidget *InputHeightMap;
+    CHeightmapWidget       *ExpectedHeightMap;
 
     C2dChart         *accuracyTime;
     QCheckBox        *autoCheckBox;
@@ -51,19 +53,22 @@ private slots:
     void slotLogConsole      (const QString& str);
     void slotLogConsole      (const QString& str,Qt::GlobalColor color);
     void slotSetAccuracyPoint(int iteration_num, float temp_accuracy);
-    void slotCommandExecuted ();
+    void slotCommandExecuted (int cmd);
+    void slotCommandExecuted (){slotCommandExecuted (EPrinterCommandsNone);}
     void slotReady           (const QString&);
 private slots:
-    void on_openAdvanced_clicked();
-    void on_calibrateButton_clicked();
-    void on_stopBut_clicked();
-    void on_checkHeightsBut_clicked();
-    void on_readEepromMan_clicked();
+    void on_openAdvanced_clicked      ();
+    void on_calibrateButton_clicked   ();
+    void on_stopBut_clicked           ();
+    void on_checkHeightsBut_clicked   ();
+    void on_readEepromMan_clicked     ();
     void on_manualCalibrateBut_clicked();
-    void on_autoCheckBox(bool val);
-    void onInputPushButtonClicked(CHeightmapWidget::EBushButtons but);
-    void on_sendEepromMan_clicked();
-    void slotNewPosition(const TVertex& ver);
+    void on_autoCheckBox              (bool val);
+    void onInputPushButtonClicked     (CManualHeightmapWidget::EBushButtons but);
+    void on_sendEepromMan_clicked     ();
+    void slotNewPosition              (const TVertex& ver);
+    void on_readEEPROM_clicked();
+    void on_sendEEPROMButton_clicked();
 };
 
 #endif // OPENDACT_WND_H

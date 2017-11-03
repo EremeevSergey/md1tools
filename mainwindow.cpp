@@ -54,11 +54,11 @@ void MainWindow::createUi     ()
             logView,SLOT(slotAddLine(CConnection::EDirection,QString)));
 //--    connect (Printer.EEPROM,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
 //--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
-    connect (&Printer,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
-    connect (&Printer,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
+//    connect (&Printer,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
+//    connect (&Printer,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
     connect(taskBar,SIGNAL(signalTaskSelect(QString)),this,SLOT(slotSetActiveTask(QString)));
-
-
+    connect(Printer.Connection,SIGNAL(signalOpened()),this,SLOT(slotUpdate()));
+    connect(Printer.Connection,SIGNAL(signalClosed()),this,SLOT(slotUpdate()));
 }
 
 void MainWindow::createActions()
@@ -71,8 +71,6 @@ void MainWindow::createActions()
     connect(actClosePort,SIGNAL(triggered()),this,SLOT(slotClosePort()));
     connect(actSetup    ,SIGNAL(triggered()),this,SLOT(slotSetup    ()));
     connect(actReset    ,SIGNAL(triggered()),this,SLOT(slotReset    ()));
-    connect(Printer.Connection,SIGNAL(signalOpened()),this,SLOT(slotUpdate()));
-    connect(Printer.Connection,SIGNAL(signalClosed()),this,SLOT(slotUpdate()));
 }
 
 void MainWindow::createToolBar()

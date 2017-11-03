@@ -9,7 +9,8 @@ CControlWindow::CControlWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("NotReady Control.");
     setWindowIcon(QIcon(":/images/joystick.png"));
-    BedWidget = new CBedWidgetBasic();
+    BedWidget = new CBlackBedWidget();
+    BedWidget->setTransparency(128);
     ui->bedLayout->addWidget(BedWidget);
 
     XControl = new CUpDownWidget("X");
