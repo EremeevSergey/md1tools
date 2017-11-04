@@ -35,6 +35,7 @@ protected:
     QAction*  actClosePort;
     QAction*  actSetup;
     QAction*  actReset;
+    QAction*  actLogView;
     QString   activeTaskName;
 public slots:
     void     slotSetActiveTask(const QString& name);
@@ -44,6 +45,8 @@ protected slots:
     void     slotClosePort    ();
     void     slotSetup        ();
     void     slotReset        ();
+    void     slotLog          ();
+    void     slotLogClosed    (bool);
     void     slotStart        (const QString& task);
     void     slotStop         (const QString& task);
 };

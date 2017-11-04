@@ -526,6 +526,7 @@ void COpendactWnd::initUi()
     textBox3             ->setValue(0.25);
     textBox2             ->setValue(0.25);
     textBox1             ->setValue(0.25);
+    tabControl1->setCurrentIndex(0);
 }
 
 void COpendactWnd::setButtonValues()
@@ -895,7 +896,6 @@ void COpendactWnd::on_autoCheckBox(bool val)
 
 void COpendactWnd::slotNewPosition(const TVertex& ver)
 {
-//    qDebug() << "slotNewPosition(const TVertex& ver)";
     InputHeightMap->on_NewValue(ver.Z);
 }
 

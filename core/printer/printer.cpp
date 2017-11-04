@@ -171,8 +171,9 @@ bool CPrinter::__sendScriptLine(EPrinterCommands cmd_type)
         bool ret = Connection->writeLine(cmd_string);
         if (ret){
             CurrentCommandType=cmd_type;
-            if (wait)
-                waitWait = true;
+//            if (wait)
+//                waitWait = true;
+            waitWait = wait;
             return true;
         }
     }
@@ -252,8 +253,10 @@ void  CPrinter::processOk ()
             State = PStateReady;
         break;
     case PStateScriptPlaying:
-        if (waitWait!=true && !__sendScriptLine(CurrentCommandType))
+        if (waitWait!=true && !__sendScriptLine(CurrentCommandType)){
             State = PStateReady;
+            emit signalReady(getName());
+        }
         break;
     default:
         break;
@@ -270,7 +273,13 @@ void CPrinter::processWait()
         State = PStateReadEeprom;
         break;
     case PStateReadEeprom:
-        // считали, переходим в состояние готовности
+        // считали, идём домой
+        State = PStateReady;
+        sendGoHomeAll();
+        State = PStateReadGoHome;
+        break;
+    case PStateReadGoHome:
+        // Домой пришли, переходим в состояние готовности
         State = PStateReady;
         emit signalOpened();
         break;
@@ -349,12 +358,18 @@ void CPrinter::sendGoToXYZ        (double x,double y, double z)
     //   G1 X5.791 Y5.519 Z24
     if (State==PStateReady){
         CurrentPosition  = TVertex();
-        QString  str = QString("G1 X%1 Y%2 Z%3").arg(QString::number(x,'f',3),QString::number(y,'f',3),QString::number(z,'f',3));
+//        QString  str = QString("G1 X%1 Y%2 Z%3").arg(QString::number(x,'f',3),QString::number(y,'f',3),QString::number(z,'f',3));
 //        qDebug() << "+++++++++  cmdGoToXYZ: " << str;
 //        Connection->writeLine(str);
-        __sendCommand(str,EPrinterCommandsG1,true);
+        __sendCommand(getGoToXYZString(x,y,z),EPrinterCommandsG1,true);
     }
 }
+
+QString CPrinter::getGoToXYZString (double x,double y, double z)
+{
+    return QString("G1 X%1 Y%2 Z%3").arg(QString::number(x,'f',3),QString::number(y,'f',3),QString::number(z,'f',3));
+}
+
 
 void CPrinter::sendGetZProbeValue ()
 {

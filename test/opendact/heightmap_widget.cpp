@@ -86,12 +86,12 @@ void CHeightmapWidget::updateUi   ()
 {
     Caption->move(0,0);
 
-    leX->setGeometry(QRect(RectA));
-    leY->setGeometry(QRect(RectB));
-    leZ->setGeometry(QRect(RectC));
-    leX_Opp->setGeometry(QRect(RectAOpp));
-    leY_Opp->setGeometry(QRect(RectBOpp));
-    leZ_Opp->setGeometry(QRect(RectCOpp));
+    leX->setGeometry    (QRect(getRectA()));
+    leY->setGeometry    (QRect(getRectB()));
+    leZ->setGeometry    (QRect(getRectC()));
+    leX_Opp->setGeometry(QRect(getRectAOpp()));
+    leY_Opp->setGeometry(QRect(getRectBOpp()));
+    leZ_Opp->setGeometry(QRect(getRectCOpp()));
 }
 
 QSizeF CHeightmapWidget::__getRailSize() const
@@ -189,19 +189,19 @@ QSizeF CManualHeightmapWidget::__getRailSize() const
 void CManualHeightmapWidget::updateUi ()
 {
     CHeightmapWidget::updateUi();
-    leX->setGeometry(getLineEditRect(RectA));
-    leY->setGeometry(getLineEditRect(RectB));
-    leZ->setGeometry(getLineEditRect(RectC));
-    leX_Opp->setGeometry(getLineEditRect(RectAOpp));
-    leY_Opp->setGeometry(getLineEditRect(RectBOpp));
-    leZ_Opp->setGeometry(getLineEditRect(RectCOpp));
+    leX->setGeometry    (getLineEditRect(getRectA()));
+    leY->setGeometry    (getLineEditRect(getRectB()));
+    leZ->setGeometry    (getLineEditRect(getRectC()));
+    leX_Opp->setGeometry(getLineEditRect(getRectAOpp()));
+    leY_Opp->setGeometry(getLineEditRect(getRectBOpp()));
+    leZ_Opp->setGeometry(getLineEditRect(getRectCOpp()));
 
-    pbX->setGeometry(getPushButtonRect(RectA));
-    pbY->setGeometry(getPushButtonRect(RectB));
-    pbZ->setGeometry(getPushButtonRect(RectC));
-    pbX_Opp->setGeometry(getPushButtonRect(RectAOpp));
-    pbY_Opp->setGeometry(getPushButtonRect(RectBOpp));
-    pbZ_Opp->setGeometry(getPushButtonRect(RectCOpp));
+    pbX->setGeometry    (getPushButtonRect(getRectA()));
+    pbY->setGeometry    (getPushButtonRect(getRectB()));
+    pbZ->setGeometry    (getPushButtonRect(getRectC()));
+    pbX_Opp->setGeometry(getPushButtonRect(getRectAOpp()));
+    pbY_Opp->setGeometry(getPushButtonRect(getRectBOpp()));
+    pbZ_Opp->setGeometry(getPushButtonRect(getRectCOpp()));
 
     pbHomeAll->setGeometry(0,height()-leX->height(),pbHomeAll->width(),leX->height());
     dsbZOffset->setGeometry(width()/2  - dsbZOffset->width()/2,

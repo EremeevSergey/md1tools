@@ -5,6 +5,7 @@
 #include <QIcon>
 #include <QtNumeric>
 #include <QFont>
+#include "../../common.h"
 
 CUpDownWidget::CUpDownWidget(const QString &name, QWidget *parent) : QFrame(parent)
 {
@@ -69,7 +70,17 @@ CUpDownWidget::CUpDownWidget(const QString &name, QWidget *parent) : QFrame(pare
     v->addWidget(labelStep,1);
     v->addWidget(step,1);
 
+    v->setSpacing(1);
+    v->setMargin(2);
     setLayout(v);
+
+    connect(upButton  ,SIGNAL(clicked()),SLOT(slotUp  ()));
+    connect(downButton,SIGNAL(clicked()),SLOT(slotDown()));
+}
+
+void CUpDownWidget::hidePosition(bool fl)
+{
+    labelValue->setVisible(!fl);
 }
 
 QSize CUpDownWidget::sizeHint() const
@@ -83,10 +94,10 @@ QSize CUpDownWidget::sizeHint() const
 //            step->width());
     int h = labelName ->height()+
             upButton  ->height()+
-            labelValue->height()+
             downButton->height()+
+            labelStep ->height()+
             step      ->height();
-
+    if (labelValue->isVisible()) h+=labelValue->height();
     return QSize(60,h);
 }
 
@@ -94,4 +105,14 @@ QSize CUpDownWidget::sizeHint() const
 void CUpDownWidget::setPosition(float pos)
 {
     labelValue->setText(QString::number(pos,'f',2));
+}
+
+void CUpDownWidget::slotUp  ()
+{
+    emit signalUpDown(step->value());
+}
+
+void CUpDownWidget::slotDown()
+{
+    emit signalUpDown(-step->value());
 }

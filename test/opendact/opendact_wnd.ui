@@ -157,7 +157,7 @@
      </widget>
      <widget class="QTabWidget" name="tabControl1">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -191,6 +191,9 @@
            <widget class="QDoubleSpinBox" name="textHRadRatio">
             <property name="minimum">
              <double>-99.989999999999995</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
             </property>
            </widget>
           </item>
@@ -227,6 +230,9 @@
             <property name="minimum">
              <double>-99.989999999999995</double>
             </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
             <property name="value">
              <double>0.050000000000000</double>
             </property>
@@ -251,12 +257,18 @@
             <property name="minimum">
              <double>-99.989999999999995</double>
             </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
            </widget>
           </item>
           <item row="3" column="1">
            <widget class="QDoubleSpinBox" name="textFSRPO">
             <property name="minimum">
              <double>-99.989999999999995</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
             </property>
            </widget>
           </item>
@@ -295,7 +307,11 @@
            <widget class="QComboBox" name="heuristicComboBox"/>
           </item>
           <item row="6" column="1">
-           <widget class="QDoubleSpinBox" name="textProbingHeight"/>
+           <widget class="QDoubleSpinBox" name="textProbingHeight">
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
           </item>
           <item row="9" column="1">
            <widget class="QDoubleSpinBox" name="textDeltaTower">
@@ -326,6 +342,9 @@
             <property name="minimum">
              <double>-99.989999999999995</double>
             </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
            </widget>
           </item>
           <item row="15" column="0">
@@ -350,6 +369,9 @@
             <property name="minimum">
              <double>-99.989999999999995</double>
             </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
            </widget>
           </item>
           <item row="12" column="1">
@@ -357,12 +379,18 @@
             <property name="minimum">
              <double>-99.989999999999995</double>
             </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
            </widget>
           </item>
           <item row="14" column="1">
            <widget class="QDoubleSpinBox" name="textTowPerc">
             <property name="minimum">
              <double>-99.989999999999995</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
             </property>
            </widget>
           </item>
@@ -392,12 +420,21 @@
             <property name="minimum">
              <double>-99.989999999999995</double>
             </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
            </widget>
           </item>
           <item row="1" column="3">
            <widget class="QDoubleSpinBox" name="zMaxLengthText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="maximum">
              <double>2000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
@@ -415,6 +452,9 @@
            <widget class="QDoubleSpinBox" name="textOppPerc">
             <property name="minimum">
              <double>-99.989999999999995</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
             </property>
            </widget>
           </item>
@@ -454,22 +494,48 @@
            </widget>
           </item>
           <item row="2" column="3">
-           <widget class="QDoubleSpinBox" name="zProbeText"/>
+           <widget class="QDoubleSpinBox" name="zProbeText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
+            </property>
+           </widget>
           </item>
           <item row="3" column="3">
-           <widget class="QDoubleSpinBox" name="zProbeSpeedText"/>
+           <widget class="QDoubleSpinBox" name="zProbeSpeedText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
+            </property>
+           </widget>
           </item>
           <item row="4" column="3">
            <widget class="QDoubleSpinBox" name="HRadiusText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
           <item row="5" column="3">
            <widget class="QDoubleSpinBox" name="diagonalRod">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
@@ -533,11 +599,17 @@
           </item>
           <item row="9" column="3">
            <widget class="QDoubleSpinBox" name="AText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>-1000.000000000000000</double>
             </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
@@ -557,21 +629,33 @@
           </item>
           <item row="10" column="3">
            <widget class="QDoubleSpinBox" name="BText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>-1000.000000000000000</double>
             </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
           <item row="11" column="3">
            <widget class="QDoubleSpinBox" name="CText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>-1000.000000000000000</double>
             </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
@@ -598,31 +682,49 @@
           </item>
           <item row="12" column="3">
            <widget class="QDoubleSpinBox" name="DAText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>-1000.000000000000000</double>
             </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
           <item row="13" column="3">
            <widget class="QDoubleSpinBox" name="DBText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>-1000.000000000000000</double>
             </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
           <item row="14" column="3">
            <widget class="QDoubleSpinBox" name="DCText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>-1000.000000000000000</double>
             </property>
             <property name="maximum">
              <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>
@@ -642,11 +744,17 @@
           </item>
           <item row="0" column="3">
            <widget class="QDoubleSpinBox" name="stepsPerMMText">
+            <property name="decimals">
+             <number>3</number>
+            </property>
             <property name="minimum">
              <double>10.000000000000000</double>
             </property>
             <property name="maximum">
              <double>300.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
             </property>
            </widget>
           </item>

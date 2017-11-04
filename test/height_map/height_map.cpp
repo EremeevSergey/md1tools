@@ -1,7 +1,4 @@
-#include <QPainter>
-#include <QBrush>
 #include <QHBoxLayout>
-#include <QFontMetrics>
 #include <math.h>
 #include <QHelpEvent>
 #include <QFileDialog>
@@ -9,20 +6,20 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <QDebug>
-#include "plane_wnd.h"
-#include "../common.h"
+#include "height_map.h"
+#include "../../common.h"
 
 /*****************************************************************************\
 *                                                                             *
 *                                                                             *
 \*****************************************************************************/
 
-void CPlaneWindow::slotCommandExecuted(int)
+void CHeightMapWindow::slotCommandExecuted(int)
 {
     mainLoop();
 }
 
-void CPlaneWindow::on_pbStart_clicked()
+void CHeightMapWindow::on_pbStart_clicked()
 {
     if (state==Stoped){
         start();
@@ -44,7 +41,7 @@ void CPlaneWindow::on_pbStart_clicked()
     updateControls();
 }
 
-void CPlaneWindow::on_pbStop_clicked()
+void CHeightMapWindow::on_pbStop_clicked()
 {
     if (state==Paused){
         state = Stoped;
@@ -56,9 +53,8 @@ void CPlaneWindow::on_pbStop_clicked()
     updateControls();
 }
 
-void CPlaneWindow::mainLoop()
+void CHeightMapWindow::mainLoop()
 {
-    qDebug() << "void CPlaneWindow::mainLoop()" << state ;
     switch (state) {
     case Active:
         activeLoop();
@@ -76,9 +72,8 @@ void CPlaneWindow::mainLoop()
     updateControls();
 }
 
-void CPlaneWindow::activeLoop()
+void CHeightMapWindow::activeLoop()
 {
-    qDebug() << "void CPlaneWindow::activeLoop()" << state << step;
     TVertex ver;
     double z;
     switch (step){
@@ -112,11 +107,11 @@ void CPlaneWindow::activeLoop()
 }
 
 
-CPlaneWindow::CPlaneWindow(QWidget *parent) :
+CHeightMapWindow::CHeightMapWindow(QWidget *parent) :
     CBaseWindow(parent),Ui::plane_wnd()
 {
     setupUi(this);
-    setWindowTitle("Height map.");
+    setWindowTitle(tr("Height map."));
     setWindowIcon(QIcon(":/images/heightmap.png"));
     Plane = new CPlaneWidget();
     mainLayout->insertWidget(0,Plane,4);
@@ -130,11 +125,11 @@ CPlaneWindow::CPlaneWindow(QWidget *parent) :
     updateControls();
 }
 
-CPlaneWindow::~CPlaneWindow()
+CHeightMapWindow::~CHeightMapWindow()
 {
 }
 
-void CPlaneWindow::updateControls()
+void CHeightMapWindow::updateControls()
 {
     bool main,bstart,bstop;
     bstart = true;
@@ -183,7 +178,7 @@ void CPlaneWindow::updateControls()
 }
 
 
-void CPlaneWindow::displayStat()
+void CHeightMapWindow::displayStat()
 {
     // Statistic
     double max=-1000,min=1000;
@@ -220,50 +215,48 @@ void CPlaneWindow::displayStat()
     }
 }
 
-void CPlaneWindow::on_dsbRadius_valueChanged(double arg1)
+void CHeightMapWindow::on_dsbRadius_valueChanged(double arg1)
 {
     Plane->setTestRadius(arg1);
 }
 
-void CPlaneWindow::on_dsbHeight_valueChanged(double arg1)
+void CHeightMapWindow::on_dsbHeight_valueChanged(double arg1)
 {
     Q_UNUSED(arg1);
 }
 
-bool CPlaneWindow::gotoxyz()
+bool CHeightMapWindow::gotoxyz()
 {
-    qDebug() << "bool CPlaneWindow::gotoxyz()" << Plane->count() << currentVertexIndex;
     int count = Plane->count();
     if (count>currentVertexIndex){
         TVertex ver = Plane->at(currentVertexIndex);
         ver.Z = dsbHeight->value();
         step = GoToXYZ;
-        qDebug() << "Printer.sendGoToXYZ(ver.X,ver.Y,ver.Z)" << ver.X << ver.Y << ver.Z;
         Printer.sendGoToXYZ(ver.X,ver.Y,ver.Z);
         return true;
     }
     return false;
 }
 
-void CPlaneWindow::on_sbMeshSize_valueChanged(int arg1)
+void CHeightMapWindow::on_sbMeshSize_valueChanged(int arg1)
 {
     Plane->setMeshSize(arg1);
     leCounts->setText(QString::number(Plane->count()));
 }
 
-void CPlaneWindow::on_ZScaleSlider_valueChanged(int value)
+void CHeightMapWindow::on_ZScaleSlider_valueChanged(int value)
 {
     double dval = 1.0 + (double)(value)*0.2;
     Plane->setZScale(dval);
     leZScale->setText(QString::number(dval,'f',1));
 }
 
-void CPlaneWindow::on_pbClear_clicked()
+void CHeightMapWindow::on_pbClear_clicked()
 {
     Plane->clearVertices();
 }
 
-void CPlaneWindow::on_pbSave_clicked()
+void CHeightMapWindow::on_pbSave_clicked()
 {
     QString fileName = QFileDialog::getSaveFileName(this,tr("Select file name"),"",
                                                     tr("Txt-files (*.txt);;All files (*.*)"));
@@ -302,7 +295,7 @@ void CPlaneWindow::on_pbSave_clicked()
     }
 }
 
-void CPlaneWindow::on_pbLoad_clicked()
+void CHeightMapWindow::on_pbLoad_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,tr("Select file name"),"",
                                                     tr("Txt-files (*.txt);;All files (*.*)"));
@@ -365,288 +358,3 @@ void CPlaneWindow::on_pbLoad_clicked()
         }
     }
 }
-
-/*****************************************************************************\
-*                                                                             *
-*                                                                             *
-\*****************************************************************************/
-CPlaneWidget::CPlaneWidget(QWidget *parent):QWidget(parent)
-{
-    ZScale        = 1;
-    meshSize      = 12;
-    planeHwRadius = 90.0;
-    scaleX        = 1;
-    scaleY        = 1;
-    calculateGeometry(100);
-    setTestRadius    (70.0);
-}
-
-CPlaneWidget::~CPlaneWidget()
-{
-
-}
-
-TVertex CPlaneWidget::at(int i)
-{
-    if (i>=0 && i<Vertices.count())
-        return Vertices.at(i);
-    return TVertex();
-}
-
-void CPlaneWidget::setAt(int i,const TVertex& vertex)
-{
-    if (i>=0 && i<Vertices.count()){
-        Vertices[i]=vertex;
-        repaint();
-    }
-}
-
-void CPlaneWidget::clear()
-{
-    Vertices.clear();
-    repaint();
-}
-
-void CPlaneWidget::append(const TVertex& vertex)
-{
-    Vertices.append(vertex);
-    repaint();
-}
-
-void CPlaneWidget::setMeshSize(int size)
-{
-    if (size>1){
-        meshSize= size;
-        updateVertices();
-        repaint();
-    }
-}
-
-void CPlaneWidget::setTestRadius(double rad)
-{
-    Radius = rad;
-    updateVertices();
-    repaint();
-}
-
-void CPlaneWidget::setZScale(double size)
-{
-    ZScale = size;
-    repaint();
-}
-
-void CPlaneWidget::clearVertices()
-{
-    for (int i=0,n=Vertices.size();i<n;i++){
-        Vertices[i].Z=qQNaN();
-    }
-    repaint();
-}
-
-double SIN_1=sin(M_PI/6.0+M_PI/2.0);
-double COS_1=cos(M_PI/6.0+M_PI/2.0);
-
-void CPlaneWidget::updateVertices()
-{
-    double delta = Radius*2.0/meshSize;
-    Vertices.clear();
-//    double rad = M_PI/6.0+M_PI/2.0;
-    for (int x=0;x<meshSize;x++)
-        for (int y=0;y<meshSize;y++){
-            double dy = -Radius+x*(delta)+delta/2.0;
-            double dx = -Radius+y*(delta)+delta/2.0;
-//            double dx = -Radius+x*(delta)+delta/2.0;
-//            double dy = -Radius+y*(delta)+delta/2.0;
-            if (Radius*Radius>(dx*dx + dy*dy)){
-                // Попадаем в круг - добавляем вершину
-//                Vertices.append(TVertex(dx,dy));
-                Vertices.append(TVertex(dx*COS_1 - dy*SIN_1,dx*SIN_1 + dy*COS_1));
-//                Vertices.append(TVertex(dx*cos(rad) - dy*sin(rad),dx*sin(rad) + dy*cos(rad)));
-////                Vertices.append(TVertex(dx*cos(rad) - dy*sin(rad),dx*sin(rad) + dy*cos(rad),dx*dy/500));
-            }
-        }
-}
-
-bool CPlaneWidget::event (QEvent * pe)
-{
-    if (pe->type()==QEvent::ToolTip){
-        QHelpEvent* he = static_cast<QHelpEvent*>(pe);
-        setToolTip("");
-        for (int i=0,n=Vertices.size();i<n;i++){
-            TVertex ver = Vertices.at(i);
-            QRectF r= getVertexRect(ver);
-            if (r.contains((double)(he->pos().x())/scaleX,(double)(he->pos().y())/scaleY)){
-//                if (!qIsNaN(ver.Z)){
-                    setToolTip(QString("{%1,%2,%3}").arg(
-                                   QString::number(ver.X,'f',2),
-                                   QString::number(ver.Y,'f',2),
-                                   QString::number(ver.Z,'f',2)));
-//                }
-                break;
-            }
-        }
-    }
-    return QWidget::event(pe);
-}
-
-void CPlaneWidget::paintEvent(QPaintEvent * event)
-{
-    Q_UNUSED(event);
-    showPlane();
-}
-
-#define PAINT_OFFSET 5
-void CPlaneWidget::showPlane()
-{
-    QPainter painter;
-    painter.begin(this);{
-        painter.save();
-        painter.setRenderHint(QPainter::Antialiasing,true);
-        double size;
-        scaleY=1;
-        scaleX=1;
-        if (width()<height()) {
-            size = height();
-            scaleX=(double)(width())/size;
-        }
-        else {
-            size = width();
-            scaleY=(double)(height())/size;
-        }
-        painter.scale(scaleX,scaleY);
-        calculateGeometry(size);
-        painter.save();
-            showPrinter(painter);
-        painter.restore();
-        QPen pen(Qt::black);
-        painter.setPen(pen);
-        for (int i=0,n=Vertices.size();i<n;i++){
-            painter.save();
-            showVertexRect(painter,i);
-            painter.restore();
-        }
-        pen.setWidth(3);
-        pen.setColor(Qt::blue);
-        painter.setPen(pen);
-        double s = planeRadius*Radius/planeHwRadius;
-        painter.drawArc(QRectF(planeCenterX - s,planeCenterY - s,s*2.0,s*2.0),0,5760);
-    }
-    painter.restore();
-    painter.end();
-}
-
-
-#define RAIL_SIZE 0.05
-void CPlaneWidget::calculateGeometry(double rect_size)
-{
-    double rail = rect_size*RAIL_SIZE;
-    Xa = rect_size/2.0;
-    Ya = rail;
-    RectA = QRectF(Xa-rail/2.0,0,rail,rail);
-    double radius = (rect_size - Ya)/2.0;
-    planeRadius = radius-4.0;
-    planeCenterX = Xa;
-    planeCenterY = Ya+radius;
-    double n = radius*cos(M_PI/6.0)*2.0;//cos(30)
-    Yb = Ya + n*cos(M_PI/6.0);//cos(30)
-    double m = n*sin(M_PI/6.0);
-    Xb = Xa - m;
-    RectB = QRectF(Xb-rail,Yb,rail,rail);
-    Yc = Yb;
-    Xc = Xa + m;
-    RectC = QRectF(Xc,Yc,rail,rail);
-}
-
-void CPlaneWidget::showPrinter(QPainter& painter)
-{
-    painter.setPen(Qt::black);
-    painter.setBrush(QBrush(Qt::black));
-
-    painter.drawEllipse(planeCenterX - planeRadius,planeCenterY - planeRadius,planeRadius*2.0,planeRadius*2.0);
-
-    painter.drawRect(RectA);//A(X)
-    painter.drawRect(RectB);//B(Y)
-    painter.drawRect(RectC);//C(Z)
-    painter.setPen(Qt::white);
-    painter.drawText(RectA,"Tower A",Qt::AlignHCenter | Qt::AlignVCenter);//A(X)
-    painter.drawText(RectB,"Tower B",Qt::AlignHCenter | Qt::AlignVCenter);//B(Y)
-    painter.drawText(RectC,"Tower C",Qt::AlignHCenter | Qt::AlignVCenter);//C(Z)
-}
-
-#define MAX_PROBE_DEVIATION 2.0
-
-#define ZERO_COLOR Qt::white
-#define TO_BIG_COLOR Qt::darkGreen
-#define TO_SMALL_COLOR Qt::darkRed
-#define PLUS_COLOR  Qt::green
-#define MINUS_COLOR Qt::red
-
-void CPlaneWidget::showVertexRect(QPainter &painter, int index)
-{
-    TVertex ver = Vertices.at(index);
-    QString str;
-//    QBrush origBrush = painter.brush();
-    if (!qIsNaN(ver.Z)){
-        painter.setBrush(QBrush(getRectColor(ver.Z)));
-        str = QString::number(ver.Z,'f',2);
-    }
-    else {
-        painter.setBrush(QBrush(Qt::white));//origBrush);
-    }
-    QRectF   vert_rect = getVertexRect(ver);
-    painter.drawRect(vert_rect);
-//    painter.drawEllipse(vert_rect);
-    if (!str.isEmpty()){// Draw Z value
-            vert_rect.setLeft  (vert_rect.left  ()+1);
-            vert_rect.setTop   (vert_rect.top   ()+1);
-            vert_rect.setRight (vert_rect.right ()-1);
-            vert_rect.setBottom(vert_rect.bottom()-1);
-            painter.drawText(vert_rect,str,Qt::AlignHCenter | Qt::AlignVCenter);
-    }
-}
-
-QColor CPlaneWidget::getRectColor(double val)
-{
-    QColor zero(ZERO_COLOR);
-    QColor c;
-    double max = MAX_PROBE_DEVIATION;
-    val = val*ZScale;
-    if (val==0) return zero;
-    if (val>MAX_PROBE_DEVIATION) return QColor(TO_BIG_COLOR);
-    if (val<-MAX_PROBE_DEVIATION) return QColor(TO_SMALL_COLOR);
-    else if (val>0) c=QColor(PLUS_COLOR);
-    else{
-        c    = QColor(MINUS_COLOR);
-        max=-max;
-    }
-
-    double dr = zero.red  () - c.red();
-    double dg = zero.green() - c.green();
-    double db = zero.blue () - c.blue();
-    dr = zero.red  ()-dr*val/max;
-    dg = zero.green()-dg*val/max;
-    db = zero.blue ()-db*val/max;
-
-    return QColor(dr,dg,db);
-}
-
-double SIN_2=sin(-(M_PI/6.0));
-double COS_2=cos(-(M_PI/6.0));
-
-QRectF CPlaneWidget::getVertexRect(const TVertex& ver)
-{
-    double x,y;
-//    double rad;
-//    rad = -(M_PI/6.0);//+M_PI/2.0);
-//    y= ver.X*cos(rad) - ver.Y*sin(rad);
-//    x= ver.X*sin(rad) + ver.Y*cos(rad);
-    y= ver.X*COS_2 - ver.Y*SIN_2;
-    x= ver.X*SIN_2 + ver.Y*COS_2;
-
-    double rect_size = Radius*2.0/meshSize;
-    double scale     = planeRadius/planeHwRadius;
-    return  QRectF(planeCenterX+(x-rect_size/2.0)*scale,
-                   planeCenterY+(y-rect_size/2.0)*scale,
-                   rect_size*scale,rect_size*scale);
-}
-

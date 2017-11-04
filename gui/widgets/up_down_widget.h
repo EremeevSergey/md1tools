@@ -12,6 +12,7 @@ class CUpDownWidget : public QFrame
 public:
     explicit CUpDownWidget(const QString& name,QWidget *parent = 0);
     void     setPosition(float pos);
+    void     hidePosition(bool fl);
     QSize    sizeHint() const;
 protected:
     QToolButton*    upButton;
@@ -21,8 +22,10 @@ protected:
     QLabel*         labelName;
     QDoubleSpinBox* step;
 signals:
-
+    void            signalUpDown  (float);
 public slots:
+    void            slotUp  ();
+    void            slotDown();
 };
 
 #endif // UP_DOWN_WIDGET_H

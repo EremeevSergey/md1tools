@@ -22,7 +22,6 @@ SOURCES += main.cpp\
     config.cpp \
     gui/log_view.cpp \
     gui/basewnd.cpp \
-    test/plane_wnd.cpp \
     test/escher3d/escher3d_wnd.cpp \
     test/terminal.cpp \
     gui/widgets/pluginsbar.cpp \
@@ -45,7 +44,9 @@ SOURCES += main.cpp\
     gui/widgets/termwidget.cpp \
     gui/widgets/up_down_widget.cpp \
     gui/widgets/beds/bed_basic_widget.cpp \
-    gui/widgets/beds/bed_widget.cpp
+    test/height_map/height_map.cpp \
+    test/height_map/plane_widget.cpp \
+    gui/widgets/beds/black_bed_widget.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -57,7 +58,6 @@ HEADERS  += mainwindow.h \
     config.h \
     gui/log_view.h \
     gui/basewnd.h \
-    test/plane_wnd.h \
     test/escher3d/escher3d_wnd.h \
     test/terminal.h \
     core/types.h \
@@ -81,20 +81,22 @@ HEADERS  += mainwindow.h \
     gui/widgets/termwidget.h \
     gui/widgets/up_down_widget.h \
     gui/widgets/beds/bed_basic_widget.h \
-    gui/widgets/beds/bed_widget.h
+    test/height_map/height_map.h \
+    test/height_map/plane_widget.h \
+    gui/widgets/beds/black_bed_widget.h
 
 RESOURCES += \
     gui/images/images.qrc
 
 FORMS += \
     gui/dialogs/setupdlg.ui \
-    test/plane_wnd.ui \
     test/escher3d/escher3d_wnd.ui \
     test/terminal.ui \
     test/eeprom_conf.ui \
     test/opendact/opendact_wnd.ui \
     test/Delta-Bed-Calibration-Tool/dbct_wnd.ui \
-    test/control/control_wnd.ui
+    test/control/control_wnd.ui \
+    test/height_map/height_map.ui
 
 #---------------  Qwt Plot3D  ----------------------------------
 #INCLUDEPATH += /usr/include/qwtplot3d-qt5

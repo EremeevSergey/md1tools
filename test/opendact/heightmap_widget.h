@@ -6,7 +6,7 @@
 #include <QPointF>
 #include <QLineEdit>
 #include <QLabel>
-#include "../../gui/widgets/beds/bed_widget.h"
+#include "../../gui/widgets/beds/black_bed_widget.h"
 
 //---------------------------------------------------------------------------//
 //                      Кровать с величинами всех вершин                     //

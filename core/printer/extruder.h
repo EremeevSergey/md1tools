@@ -12,6 +12,7 @@ class CExtruder
 public:
     CExtruder();
     float Temperature;
+    float Position;
     bool  On;
 };
 

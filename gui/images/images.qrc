@@ -16,6 +16,7 @@
         <file>joystick.png</file>
         <file>up1.png</file>
         <file>down1.png</file>
+        <file>text-x-log.png</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

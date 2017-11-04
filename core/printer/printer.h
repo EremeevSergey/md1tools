@@ -25,6 +25,7 @@ public:
         PStateReady,
         PStateProcessCommand,
         PStateScriptPlaying,
+        PStateReadGoHome,
         PStateReadEeprom,
         PStateReadInfo
     };
@@ -47,6 +48,9 @@ public:
     void        sendEmergencyReset ();
     void        sendScript         (const QStringList&    list){__sendCommands(CPrinterScript(list),EPrinterCommandsNone);}
     void        sendScript         (const CPrinterScript& list){__sendCommands(list,EPrinterCommandsNone);}
+
+    QString     getGoToXYZString   (double x,double y, double z);
+
     void        setErrorString     (const QString& str,CBasePrinterObject* sender);
     EPrinterCommands getLastCommanType(){ return LastCommandType;}
 protected:
@@ -78,7 +82,7 @@ protected slots:
     void        slotOpened    ();
     void        slotClosed    ();
     void        slotDataReady ();
-
+/*
 
 
 
@@ -95,6 +99,7 @@ signals:
 protected slots:
 //    void        slotAddToLog  (const QString& str);
 public:
+*/
 };
 
 #endif // PRINTER_H

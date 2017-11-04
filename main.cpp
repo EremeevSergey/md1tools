@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include "common.h"
-#include "test/plane_wnd.h"
+#include "test/height_map/height_map.h"
 #include "test/escher3d/escher3d_wnd.h"
 #include "test/opendact/opendact_wnd.h"
 #include "test/terminal.h"
@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     w.addTask(new CTestTerminal            ());
     w.addTask(new CEscher3dWindow          ());
     w.addTask(new COpendactWnd             ());
-    w.addTask(new CPlaneWindow             ());
+    w.addTask(new CHeightMapWindow         ());
 //    w.addTask(new CDeltaBedCalibrationTools());
     w.addTask(new CControlWindow           ());
     w.setActiveTask();

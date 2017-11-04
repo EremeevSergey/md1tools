@@ -50,12 +50,10 @@ void MainWindow::createUi     ()
     setCentralWidget(w);
     logView = new CLogView(this);
     addDockWidget(Qt::BottomDockWidgetArea,logView);
+    logView->hide();
     connect(Printer.Connection,SIGNAL(signalAddToLog(CConnection::EDirection,QString)),
             logView,SLOT(slotAddLine(CConnection::EDirection,QString)));
-//--    connect (Printer.EEPROM,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
-//--    connect (Printer.EEPROM,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
-//    connect (&Printer,SIGNAL(signalBusy (QString)),SLOT(slotStart(QString)));
-//    connect (&Printer,SIGNAL(signalReady(QString)),SLOT(slotStop (QString)));
+    connect(logView,SIGNAL(visibilityChanged(bool)),SLOT(slotLogClosed(bool)));
     connect(taskBar,SIGNAL(signalTaskSelect(QString)),this,SLOT(slotSetActiveTask(QString)));
     connect(Printer.Connection,SIGNAL(signalOpened()),this,SLOT(slotUpdate()));
     connect(Printer.Connection,SIGNAL(signalClosed()),this,SLOT(slotUpdate()));
@@ -63,14 +61,19 @@ void MainWindow::createUi     ()
 
 void MainWindow::createActions()
 {
-    actOpenPort  = newAction(tr("Подключиться"),":/images/open.png");
-    actClosePort = newAction(tr("Отключиться" ),":/images/close.png");
-    actSetup     = newAction(tr("Настройки"   ),":/images/key1.png");
+    actOpenPort  = newAction(tr("Connect"),":/images/open.png");
+    actClosePort = newAction(tr("Diconnect" ),":/images/close.png");
+    actSetup     = newAction(tr("Setup"   ),":/images/key1.png");
     actReset     = newAction(tr("Reset"   ),":/images/stop_1.png");
+    actLogView   = newAction(tr("Log"   ),":/images/text-x-log.png");
+    actLogView->setCheckable(true);
+    actLogView->setChecked(false);
+
     connect(actOpenPort ,SIGNAL(triggered()),this,SLOT(slotOpenPort ()));
     connect(actClosePort,SIGNAL(triggered()),this,SLOT(slotClosePort()));
     connect(actSetup    ,SIGNAL(triggered()),this,SLOT(slotSetup    ()));
     connect(actReset    ,SIGNAL(triggered()),this,SLOT(slotReset    ()));
+    connect(actLogView  ,SIGNAL(triggered()),this,SLOT(slotLog      ()));
 }
 
 void MainWindow::createToolBar()
@@ -80,6 +83,8 @@ void MainWindow::createToolBar()
     tb->addAction(actClosePort);
     tb->addSeparator();
     tb->addAction(actReset);
+    tb->addSeparator();
+    tb->addAction(actLogView);
     tb->addSeparator();
     tb->addAction(actSetup);
     addToolBar(Qt::TopToolBarArea,tb);
@@ -108,7 +113,7 @@ void MainWindow::updateActions()
     bool fl = Printer.Connection->isOpened();
     actOpenPort->setEnabled(!fl);
     actClosePort->setEnabled(fl);
-    centralWindow->setEnabled(fl);
+//    centralWindow->setEnabled(fl);
 }
 
 void MainWindow::slotUpdate   ()
@@ -232,4 +237,15 @@ void MainWindow::slotReset()
         }
     }
     Printer.Connection->open();
+}
+
+void MainWindow::slotLog()
+{
+    logView->setVisible(actLogView->isChecked());
+}
+
+void MainWindow::slotLogClosed(bool fl)
+{
+    if (!fl)
+        actLogView->setChecked(false);
 }
