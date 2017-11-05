@@ -18,9 +18,9 @@ CBlackBedWidget::CBlackBedWidget(QWidget *parent) : CBedWidgetBasic(parent)
     hotEndPosition = QPointF(qQNaN(),qQNaN());
 }
 
-static char strTowerA[] = "Tower\nA";
-static char strTowerB[] = "Tower\nB";
-static char strTowerC[] = "Tower\nC";
+static char strTowerA[] = "Tower A";
+static char strTowerB[] = "Tower B";
+static char strTowerC[] = "Tower C";
 
 #define CURSOR_SIZE 20
 #define HOT_END_SIZE 22
@@ -89,7 +89,7 @@ QSizeF CBlackBedWidget::__getRailSize() const
 
     QFontMetrics fm = fontMetrics();
     QRectF r= fm.boundingRect(strTowerA);
-    return QSizeF(r.width()*1.1,r.height()*1.1);
+    return QSizeF(r.width()*1.3,r.height()*1.9);
 }
 
 void CBlackBedWidget::setTransparency(quint8 tr)
