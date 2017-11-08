@@ -1,7 +1,24 @@
 #include <QStringList>
 #include <QtNumeric>
 #include "extruder.h"
+/*
 
+m105 x0
+ok 0
+T:25.35 /0 B:21.53 /0 RAW1:3937 B@:0 @:0 RAW0:3909
+M119
+ok 0
+endstops hit: x_max:L y_max:L z_max:L Z-probe state:L
+
+
+M140 S<temp> F1 - Set bed target temp
+m140 s50 f1
+ok 0
+TargetBed:50
+m105
+ok 0
+T:25.70 /0 B:23.61 /50 B@:255 @:0
+*/
 /*****************************************************************************\
 *                                 CExtruderSet                                *
 \*****************************************************************************/

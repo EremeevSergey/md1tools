@@ -113,7 +113,7 @@ void MainWindow::updateActions()
     bool fl = Printer.Connection->isOpened();
     actOpenPort->setEnabled(!fl);
     actClosePort->setEnabled(fl);
-//    centralWindow->setEnabled(fl);
+    centralWindow->setEnabled(fl);
 }
 
 void MainWindow::slotUpdate   ()

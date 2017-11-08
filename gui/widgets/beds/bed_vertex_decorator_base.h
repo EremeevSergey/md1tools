@@ -1,47 +1,38 @@
-#ifndef PLANE_WIDGETS_H
-#define PLANE_WIDGETS_H
+#ifndef BED_VERTEX_DECORATOR_BASE_H
+#define BED_VERTEX_DECORATOR_BASE_H
 
 #include <QList>
 #include <QRectF>
 #include <QEvent>
-#include "../../core/core.h"
-#include "../../gui/basewnd.h"
-#include "../../gui/widgets/beds/black_bed_widget.h"
+#include "../../../core/core.h"
+#include "../../../gui/widgets/beds/bed_basic_widget.h"
 
 /*****************************************************************************\
 *                                                                             *
 *                                                                             *
 \*****************************************************************************/
-class CPlaneWidget : public CBedDecoratorBase
+class CBedVertexDecoratorBase : public CBedDecoratorBase
 {
 public:
-    explicit CPlaneWidget(CBlackBedWidget *parent = 0);
-    ~CPlaneWidget();
-    void    setTestRadius(double rad);
-    double  getTestRadius(){return maxTestRadius;}
+    explicit CBedVertexDecoratorBase(CBedWidgetBasic *parent = 0);
+    ~CBedVertexDecoratorBase();
     int     count(){return Vertices.count();}
     TVertex at(int i);
     void    setAt(int i,const TVertex& vertex);
-    void    setMeshSize(int size);
-    int     getMeshSize(){return meshSize;}
     void    setZScale(double size);
     double  getZScale(){return ZScale;}
+    void    setZOffset(double size);
+    double  getZOffset(){return ZOffset;}
     void    clear();
     void    append(const TVertex& vertex);
     void    clearVertices();
-    void    draw(QPainter& painter);
 protected:
     double ZScale;
-    int meshSize;
+    double ZOffset;
     QList<TVertex> Vertices;
-    double maxTestRadius;
 protected:
-    void   event            (QEvent * pe);
     void   updateVertices   ();
-    void   showVertexRect   (QPainter& painter,int index);
-    QColor getRectColor     (double val);
-    QRectF getVertexRect    (const TVertex& ver);
 private:
 };
 
-#endif // PLANE_WIDGETS_H
+#endif // BED_VERTEX_DECORATOR_BASE_H

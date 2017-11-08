@@ -48,6 +48,9 @@ CControlWindow::CControlWindow(QWidget *parent) :
     connect(&Printer,SIGNAL(signalReady(QString)),SLOT(slotReady(QString)));
     connect(&Printer,SIGNAL(signalBusy (QString)),SLOT(slotBusy (QString)));
     updateControls();
+
+
+    ui->rbPolar->hide();
 }
 
 CControlWindow::~CControlWindow()
@@ -151,14 +154,14 @@ void CControlWindow::slotOpened ()
 
 void CControlWindow::slotReady (const QString&)
 {
-    stop();
+//    stop();
     ui->tabWidget->setEnabled(true);
     ui->frameLeft->setEnabled(true);
 }
 
 void CControlWindow::slotBusy  (const QString&)
 {
-    start();
+//    start();
     ui->tabWidget->setEnabled(false);
     ui->frameLeft->setEnabled(false);
 }

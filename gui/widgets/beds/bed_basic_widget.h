@@ -3,6 +3,20 @@
 #include <QWidget>
 #include <QPainter>
 #include <QResizeEvent>
+#include <QList>
+
+namespace CBed
+{
+    enum ECoordinateSystem{
+        EScreen = 0,
+        EPrinter,
+        EHuman,
+        EPolar
+    };
+
+}
+
+class CBedDecoratorBase;
 //---------------------------------------------------------------------------//
 //                       Базовый клас для "кроватей"                         //
 //---------------------------------------------------------------------------//
@@ -35,17 +49,20 @@ public:
     inline double   scaleY(double val){return val*scaleYpriv;}
 public:
     explicit CBedWidgetBasic(QWidget *parent = 0);
+    ~CBedWidgetBasic();
     void          update();
     QSize         sizeHint() const;
 protected:
     virtual void  draw(QPainter&){;}
     virtual void  updateUi(){;}
+public:
+    QRectF          getBedRect(double proc=1.0) const;
 protected:
     void            resizeEvent(QResizeEvent * event);
     void            paintEvent (QPaintEvent * event);
+    bool            event      (QEvent * pe);
     void            calculateGeometry();
     virtual QSizeF  __getRailSize() const;
-    QRectF          getBedRect(double proc=1.0) const;
     inline QRect    getRectA   ()const {return RectA;}
     inline QRect    getRectB   ()const {return RectB;}
     inline QRect    getRectC   ()const {return RectC;}
@@ -65,6 +82,38 @@ private:
     QRect  RectCOpp;
     // Масштаб
     double scaleXpriv,scaleYpriv;
+    // Украшалки
+public:
+    bool  addDecorator      (CBedDecoratorBase*);
+    void  removeDecorator   (CBedDecoratorBase*dec);
+    void  moveDecoratorOnTop(CBedDecoratorBase*dec);
+private:
+    QList<CBedDecoratorBase*> Decorators;
+    void  clearDecorators();
 };
+//---------------------------------------------------------------------------//
+//                                Украшалки                                  //
+//---------------------------------------------------------------------------//
+class CBedDecoratorBase
+{
+public:
+    friend class CBedWidgetBasic;
+    CBedDecoratorBase(CBedWidgetBasic* parent);
+    virtual ~CBedDecoratorBase();
+    void          moveOnTop();
+    virtual void  update();
+    void          setVisible(bool fl);
+    void          lock() {Locked = true;}
+    void          unlock();
+protected:
+    virtual void  draw(QPainter&){;}
+    virtual void  event (QEvent * pe)=0;
+protected:
+    CBedWidgetBasic*        BedWidget;
+    QPainter                Painter;
+    bool                    Visible;
+    bool                    Locked;
+};
+
 
 #endif // BED_BASIC_WIDGET_H

@@ -5,7 +5,7 @@ CTestTerminal::CTestTerminal(QWidget *parent) :
     CBaseWindow(parent),Ui::terminal()
 {
     setupUi(this);
-    setWindowTitle(tr("Терминал"));
+    setWindowTitle(tr("Console"));
     setWindowIcon(QIcon(":/images/terminal.png"));
 
     terminal = new CTerminalWidget();

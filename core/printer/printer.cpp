@@ -276,9 +276,9 @@ void CPrinter::processWait()
         // считали, идём домой
         State = PStateReady;
         sendGoHomeAll();
-        State = PStateReadGoHome;
+        State = PStateReadStartScript;
         break;
-    case PStateReadGoHome:
+    case PStateReadStartScript:
         // Домой пришли, переходим в состояние готовности
         State = PStateReady;
         emit signalOpened();

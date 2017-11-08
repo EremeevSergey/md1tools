@@ -14,6 +14,11 @@ CBedWidgetBasic::CBedWidgetBasic(QWidget *parent):QWidget(parent)
     planeRadius = 90.0;
 }
 
+CBedWidgetBasic::~CBedWidgetBasic()
+{
+    clearDecorators();
+}
+
 QSizeF  CBedWidgetBasic::__getRailSize()  const
 {
     return QSizeF(40,40);
@@ -25,6 +30,11 @@ void CBedWidgetBasic::paintEvent (QPaintEvent * event)
     QPainter painter;
     painter.begin(this);
     draw(painter);
+    for (int i=0,n=Decorators.size();i<n;i++){
+        CBedDecoratorBase* d = Decorators.at(i);
+        if (d && d->Visible)
+            d->draw(painter);
+    }
     painter.end();
 }
 
@@ -32,6 +42,16 @@ void CBedWidgetBasic::resizeEvent(QResizeEvent * event)
 {
     QWidget::resizeEvent(event);
     update();
+}
+
+bool CBedWidgetBasic::event (QEvent * pe)
+{
+    for (int i=0,n=Decorators.size();i<n;i++){
+        CBedDecoratorBase* d = Decorators.at(i);
+        if (d && d->Visible)
+            d->event(pe);
+    }
+    return QWidget::event(pe);
 }
 
 void CBedWidgetBasic::update()
@@ -132,7 +152,6 @@ QPointF CBedWidgetBasic::fromScreenToPrinter(double x,double y)
         double sx = (x-planeCenter.x())/scaleXpriv;
         double sy = -(y-planeCenter.y())/scaleYpriv;
         double a = 120.0/180.0*M_PI;
-//        double a = -0.0/180.0*M_PI;
         return QPointF (sx*cos(a)-sy*sin(a),
                         sx*sin(a)+sy*cos(a));
     }
@@ -143,7 +162,6 @@ QPointF CBedWidgetBasic::fromPrinterToScreen(double x, double y)
 {
     if (!qIsNaN(x) && !qIsNaN(x)){
         double a = -120.0/180.0*M_PI;
-//        double a = 0.0/180.0*M_PI;
         return QPointF (planeCenter.x()+(x*cos(a)-y*sin(a))*scaleXpriv,
                         planeCenter.y()-(x*sin(a)+y*cos(a))*scaleYpriv);
     }
@@ -154,7 +172,6 @@ QPointF CBedWidgetBasic::fromPrinterToHuman(double x,double y)
 {
     if (!qIsNaN(x) && !qIsNaN(x)){
         double a = -120.0/180.0*M_PI;
-//        double a = 0.0/180.0*M_PI;
         return QPointF ((x*cos(a)-y*sin(a)),
                         (x*sin(a)+y*cos(a)));
     }
@@ -165,9 +182,88 @@ QPointF CBedWidgetBasic::fromHumanToPrinter(double x,double y)
 {
     if (!qIsNaN(x) && !qIsNaN(x)){
         double a = 120.0/180.0*M_PI;
-//        double a = -0.0/180.0*M_PI;
         return QPointF ((x*cos(a)-y*sin(a)),
                         (x*sin(a)+y*cos(a)));
     }
     return QPointF(qQNaN(),qQNaN());
+}
+
+// Украшалки
+void  CBedWidgetBasic::clearDecorators()
+{
+    for (int i=0,n=Decorators.size();i<n;i++){
+        CBedDecoratorBase* d = Decorators.at(i);
+        d->BedWidget=0;
+        delete d;
+    }
+    Decorators.clear();
+}
+
+bool CBedWidgetBasic::addDecorator(CBedDecoratorBase* dec)
+{
+    int i = Decorators.indexOf(dec);
+    if (i<0) {
+        Decorators.append(dec);
+        dec->BedWidget = this;
+        return true;
+    }
+    return false;
+}
+
+void CBedWidgetBasic::removeDecorator(CBedDecoratorBase*dec)
+{
+    int i = Decorators.indexOf(dec);
+    if (i>=0){
+        dec->BedWidget=0;
+        delete dec;
+        Decorators.removeAt(i);
+    }
+}
+
+void CBedWidgetBasic::moveDecoratorOnTop(CBedDecoratorBase* dec)
+{
+    int i = Decorators.indexOf(dec);
+    if (i>=0){
+        Decorators.removeAt(i);
+        Decorators.append(dec);
+    }
+}
+//---------------------------------------------------------------------------//
+//                                Украшалки                                  //
+//---------------------------------------------------------------------------//
+CBedDecoratorBase::CBedDecoratorBase(CBedWidgetBasic* parent)
+{
+    Visible = true;
+    Locked  = false;
+    parent->addDecorator(this);
+    BedWidget->repaint();
+}
+
+CBedDecoratorBase::~CBedDecoratorBase()
+{
+    if (BedWidget)
+        BedWidget->removeDecorator(this);
+}
+
+void CBedDecoratorBase::update()
+{
+    if (!Locked)
+        BedWidget->repaint();
+}
+
+void CBedDecoratorBase::setVisible(bool fl)
+{
+    Visible = fl;
+    BedWidget->repaint();
+}
+
+void CBedDecoratorBase::unlock()
+{
+    Locked  = false;
+    BedWidget->repaint();
+}
+
+void CBedDecoratorBase::moveOnTop()
+{
+    BedWidget->moveDecoratorOnTop(this);
 }

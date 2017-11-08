@@ -25,7 +25,7 @@ public:
         PStateReady,
         PStateProcessCommand,
         PStateScriptPlaying,
-        PStateReadGoHome,
+        PStateReadStartScript,
         PStateReadEeprom,
         PStateReadInfo
     };

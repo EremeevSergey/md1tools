@@ -26,9 +26,6 @@ void CHeightMapWindow::on_pbStart_clicked()
         state= Active;
         step = GoHome;
         currentVertexIndex = 0;
-//        Printer.Connection->writeLine("M321");
-//        Printer.Connection->writeLine("M322");
-
         Printer.sendGoHomeAll();
     }
     else if (state==Active){
@@ -89,11 +86,11 @@ void CHeightMapWindow::activeLoop()
         step = ZProbe;
         break;
     case ZProbe:
-        ver=Plane->at(currentVertexIndex);
+        ver=RectDecorator->at(currentVertexIndex);
         z = Printer.ZProbe.Z;
         if (!qIsNaN(z)) ver.Z = z - dsbHeight->value();
         else            ver.Z = z;
-        Plane->setAt(currentVertexIndex,ver);
+        RectDecorator->setAt(currentVertexIndex,ver);
         displayStat();
         currentVertexIndex++;
         if (!gotoxyz()){
@@ -113,13 +110,14 @@ CHeightMapWindow::CHeightMapWindow(QWidget *parent) :
     setupUi(this);
     setWindowTitle(tr("Height map."));
     setWindowIcon(QIcon(":/images/heightmap.png"));
-    Plane = new CPlaneWidget();
-    mainLayout->insertWidget(0,Plane,4);
-    leCounts->setText(QString::number(Plane->count()));
-    dsbRadius->setValue(Plane->getTestRadius());
-    sbMeshSize->setValue(Plane->getMeshSize());
-    ZScaleSlider->setValue((int)(Plane->getZScale())-1);
-    leZScale->setText(QString::number(Plane->getZScale(),'f',1));
+    Bed = new CBlackBedWidget();
+    RectDecorator = new CPlaneWidget(Bed);
+    mainLayout->insertWidget(0,Bed,4);
+    leCounts->setText(QString::number(RectDecorator->count()));
+    dsbRadius->setValue(RectDecorator->getTestRadius());
+    sbMeshSize->setValue(RectDecorator->getMeshSize());
+    ZScaleSlider->setValue((int)(RectDecorator->getZScale())-1);
+    leZScale->setText(QString::number(RectDecorator->getZScale(),'f',1));
     connect (&Printer,SIGNAL(signalCommandReady(int)),
              SLOT(slotCommandExecuted(int)),Qt::QueuedConnection);
     updateControls();
@@ -184,8 +182,8 @@ void CHeightMapWindow::displayStat()
     double max=-1000,min=1000;
     int count=0;
     double sumQ=0,sum=0;
-    for (int i=0,n=Plane->count();i<n;i++){
-        double v = Plane->at(i).Z;
+    for (int i=0,n=RectDecorator->count();i<n;i++){
+        double v = RectDecorator->at(i).Z;
         if (!qIsNaN(v)){
             sum+=v;
             if (max<v) max=v;
@@ -199,8 +197,8 @@ void CHeightMapWindow::displayStat()
     if (count>0){
         double aver = sum/count;
         leAverage->setText(QString::number(aver));
-        for (int i=0,n=Plane->count();i<n;i++){
-            double v = Plane->at(i).Z;
+        for (int i=0,n=RectDecorator->count();i<n;i++){
+            double v = RectDecorator->at(i).Z;
             if (!qIsNaN(v)){
                 sumQ+=(v-aver)*(v-aver);
                 count++;
@@ -217,7 +215,7 @@ void CHeightMapWindow::displayStat()
 
 void CHeightMapWindow::on_dsbRadius_valueChanged(double arg1)
 {
-    Plane->setTestRadius(arg1);
+    RectDecorator->setTestRadius(arg1);
 }
 
 void CHeightMapWindow::on_dsbHeight_valueChanged(double arg1)
@@ -227,9 +225,9 @@ void CHeightMapWindow::on_dsbHeight_valueChanged(double arg1)
 
 bool CHeightMapWindow::gotoxyz()
 {
-    int count = Plane->count();
+    int count = RectDecorator->count();
     if (count>currentVertexIndex){
-        TVertex ver = Plane->at(currentVertexIndex);
+        TVertex ver = RectDecorator->at(currentVertexIndex);
         ver.Z = dsbHeight->value();
         step = GoToXYZ;
         Printer.sendGoToXYZ(ver.X,ver.Y,ver.Z);
@@ -240,20 +238,20 @@ bool CHeightMapWindow::gotoxyz()
 
 void CHeightMapWindow::on_sbMeshSize_valueChanged(int arg1)
 {
-    Plane->setMeshSize(arg1);
-    leCounts->setText(QString::number(Plane->count()));
+    RectDecorator->setMeshSize(arg1);
+    leCounts->setText(QString::number(RectDecorator->count()));
 }
 
 void CHeightMapWindow::on_ZScaleSlider_valueChanged(int value)
 {
     double dval = 1.0 + (double)(value)*0.2;
-    Plane->setZScale(dval);
+    RectDecorator->setZScale(dval);
     leZScale->setText(QString::number(dval,'f',1));
 }
 
 void CHeightMapWindow::on_pbClear_clicked()
 {
-    Plane->clearVertices();
+    RectDecorator->clearVertices();
 }
 
 void CHeightMapWindow::on_pbSave_clicked()
@@ -271,11 +269,11 @@ void CHeightMapWindow::on_pbSave_clicked()
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)){
             QTextStream stream(&file);
             try{
-                stream << QString("mesh_size: %1")   .arg(QString::number(Plane         ->getMeshSize()  ,'f',3)) << endl;
-                stream << QString("max_radius: %1")  .arg(QString::number(Plane         ->getTestRadius(),'f',3)) << endl;
+                stream << QString("mesh_size: %1")   .arg(QString::number(RectDecorator         ->getMeshSize()  ,'f',3)) << endl;
+                stream << QString("max_radius: %1")  .arg(QString::number(RectDecorator         ->getTestRadius(),'f',3)) << endl;
                 stream << QString("height: %1")      .arg(QString::number(dsbHeight     ->value()        ,'f',3)) << endl;
-                for (int i=0,n=Plane->count();i<n;i++){
-                    TVertex vert = Plane->at(i);
+                for (int i=0,n=RectDecorator->count();i<n;i++){
+                    TVertex vert = RectDecorator->at(i);
                     stream << QString("x: %1").arg(QString::number(vert.X,'f',3));
                     stream << QString(", y: %1").arg(QString::number(vert.Y,'f',3));
                     if (!qIsNaN(vert.Z))
@@ -310,7 +308,8 @@ void CHeightMapWindow::on_pbLoad_clicked()
         QFile file(fileName);
         if (file.open(QIODevice::ReadOnly)){
             QTextStream stream(&file);
-            Plane->clear();
+            RectDecorator->clear();
+            RectDecorator->lock();
             try{
                 while (!stream.atEnd()){
                     line = stream.readLine().trimmed();
@@ -318,14 +317,14 @@ void CHeightMapWindow::on_pbLoad_clicked()
                     if (list.size()>=2){
                         QString name = list.at(0).toLatin1().trimmed();
                         if (name=="mesh_size"){
-                            Plane->setMeshSize(list.at(1).trimmed().toDouble());
-                            sbMeshSize->setValue(Plane->getMeshSize());
-                            Plane->clear();
+                            RectDecorator->setMeshSize(list.at(1).trimmed().toDouble());
+                            sbMeshSize->setValue(RectDecorator->getMeshSize());
+                            RectDecorator->clear();
                         }
                         else if (name=="max_radius"){
-                            Plane->setTestRadius(list.at(1).trimmed().toDouble());
-                            dsbRadius->setValue(Plane->getTestRadius());
-                            Plane->clear();
+                            RectDecorator->setTestRadius(list.at(1).trimmed().toDouble());
+                            dsbRadius->setValue(RectDecorator->getTestRadius());
+                            RectDecorator->clear();
                         }
                         else if (name=="height"){
                             dsbHeight->setValue(list.at(1).trimmed().toDouble());
@@ -341,7 +340,7 @@ void CHeightMapWindow::on_pbLoad_clicked()
                                 else if (name=="z") vert.Z = list.at(1).trimmed().toDouble();
                             }
                             if (!qIsNaN(vert.X) && !qIsNaN(vert.Y))
-                                Plane->append(vert);
+                                RectDecorator->append(vert);
                         }
                     }
                 }
@@ -350,6 +349,7 @@ void CHeightMapWindow::on_pbLoad_clicked()
                 mb.setText(file.errorString());
                 mb.exec();
             }
+            RectDecorator->unlock();
             displayStat();
         }
         else{

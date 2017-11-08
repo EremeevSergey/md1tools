@@ -266,6 +266,7 @@ void CEepromConfiguration::slotCommandReady (int cmd_type)
         if (updateModel==true)
             Model->update();
         updateModel = false;
+        stop();
     }
 }
 
@@ -273,6 +274,7 @@ void CEepromConfiguration::on_pbRead_clicked()
 {
     updateModel = true;
     Printer.EEPROM->read();
+    start();
 }
 
 void CEepromConfiguration::on_pbWrite_clicked()
@@ -290,6 +292,7 @@ void CEepromConfiguration::on_pbWrite_clicked()
     }
     updateModel = true;
     Printer.sendScript(script);
+//    start();
 }
 
 void CEepromConfiguration::on_pbSave_clicked()

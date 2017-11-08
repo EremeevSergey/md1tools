@@ -72,16 +72,15 @@ void CBlackBedWidget::draw(QPainter& painter)
     }
 
     // Оси
-    QPointF p1,p2,p3,p4;
-    p1 = fromPrinterToScreen(fromHumanToPrinter(-80,0));
-    p2 = fromPrinterToScreen(fromHumanToPrinter(+80,0));
-    p3 = fromPrinterToScreen(fromHumanToPrinter(0,-80));
-    p4 = fromPrinterToScreen(fromHumanToPrinter(0,+80));
-    painter.drawLine(p1,p2);
-    painter.drawLine(p2,QPointF(p2.x(),p2.y()+10));
-    painter.drawLine(p3,p4);
-    painter.drawLine(p4,QPointF(p4.x()+10,p4.y()));
-
+//    QPointF p1,p2,p3,p4;
+//    p1 = fromPrinterToScreen(fromHumanToPrinter(-80,0));
+//    p2 = fromPrinterToScreen(fromHumanToPrinter(+80,0));
+//    p3 = fromPrinterToScreen(fromHumanToPrinter(0,-80));
+//    p4 = fromPrinterToScreen(fromHumanToPrinter(0,+80));
+//    painter.drawLine(p1,p2);
+//    painter.drawLine(p2,QPointF(p2.x(),p2.y()+10));
+//    painter.drawLine(p3,p4);
+//    painter.drawLine(p4,QPointF(p4.x()+10,p4.y()));
 }
 
 QSizeF CBlackBedWidget::__getRailSize() const

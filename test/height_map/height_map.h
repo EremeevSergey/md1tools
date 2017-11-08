@@ -9,8 +9,8 @@
 #include "ui_plane_wnd.h"
 #include "../../core/core.h"
 #include "../../gui/basewnd.h"
+#include "../../gui/widgets/beds/black_bed_widget.h"
 #include "plane_widget.h"
-
 
 /*****************************************************************************\
 *                                                                             *
@@ -22,9 +22,10 @@ class CHeightMapWindow : public CBaseWindow,public Ui::plane_wnd
 public:
     explicit CHeightMapWindow(QWidget *parent = 0);
     ~CHeightMapWindow();
-    void    setTestRadius(double rad){Plane->setTestRadius(rad);}
+    void    setTestRadius(double rad){RectDecorator->setTestRadius(rad);}
 protected:
-    CPlaneWidget* Plane;
+    CBlackBedWidget* Bed;
+    CPlaneWidget*    RectDecorator;
     int  currentVertexIndex;
 protected:
     bool gotoxyz       ();

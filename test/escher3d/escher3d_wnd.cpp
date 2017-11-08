@@ -161,6 +161,9 @@ void CEscher3dWindow::on_pushButton_clicked()
     if (record) oldypos->setValue(record->FValue-330.0);
     record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Alpha C(90)"));
     if (record) oldzpos->setValue(record->FValue-90.0);
+
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Steps per mm"));
+    if (record) stepspermm->setValue(record->FValue);
 }
 
 void CEscher3dWindow::on_cbAutoManual_clicked()

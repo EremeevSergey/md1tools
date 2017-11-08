@@ -3,41 +3,29 @@
 
 #include <QList>
 #include <QRectF>
-#include "../../core/core.h"
+#include <QEvent>
 #include "../../gui/basewnd.h"
-#include "../../gui/widgets/beds/black_bed_widget.h"
+#include "../../gui/widgets/beds/bed_vertex_decorator_base.h"
 
 /*****************************************************************************\
 *                                                                             *
 *                                                                             *
 \*****************************************************************************/
-class CPlaneWidget : public CBlackBedWidget
+class CPlaneWidget : public CBedVertexDecoratorBase
 {
-    Q_OBJECT
 public:
-    explicit CPlaneWidget(QWidget *parent = 0);
+    explicit CPlaneWidget(CBedWidgetBasic *parent = 0);
     ~CPlaneWidget();
     void    setTestRadius(double rad);
     double  getTestRadius(){return maxTestRadius;}
-    int     count(){return Vertices.count();}
-    TVertex at(int i);
-    void    setAt(int i,const TVertex& vertex);
     void    setMeshSize(int size);
     int     getMeshSize(){return meshSize;}
-    void    setZScale(double size);
-    double  getZScale(){return ZScale;}
-    void    clear();
-    void    append(const TVertex& vertex);
-    void    clearVertices();
+    void    draw(QPainter& painter);
 protected:
-    double ZScale;
-    int meshSize;
-    QList<TVertex> Vertices;
+    int    meshSize;
     double maxTestRadius;
 protected:
-    void   draw(QPainter& painter);
-    bool   event            (QEvent * pe);
-    void   updateUi();
+    void   event            (QEvent * pe);
     void   updateVertices   ();
     void   showVertexRect   (QPainter& painter,int index);
     QColor getRectColor     (double val);
