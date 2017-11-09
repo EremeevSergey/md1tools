@@ -11,7 +11,7 @@
 *                                                                             *
 *                                                                             *
 \*****************************************************************************/
-class CBedVertexDecoratorBase : public CBedDecoratorBase
+class CBedVertexDecoratorBase : public CBedDecoratorBase,public CVertexList
 {
 public:
     explicit CBedVertexDecoratorBase(CBedWidgetBasic *parent = 0);
@@ -19,17 +19,19 @@ public:
     int     count(){return Vertices.count();}
     TVertex at(int i);
     void    setAt(int i,const TVertex& vertex);
+    void    clear();
+    void    append(const TVertex& vertex);
+    void    set(const CVertexList& verts);
+    const CVertexList& getVertices(){return Vertices;}
+
     void    setZScale(double size);
     double  getZScale(){return ZScale;}
     void    setZOffset(double size);
     double  getZOffset(){return ZOffset;}
-    void    clear();
-    void    append(const TVertex& vertex);
-    void    clearVertices();
 protected:
     double ZScale;
     double ZOffset;
-    QList<TVertex> Vertices;
+    CVertexList Vertices;
 protected:
     void   updateVertices   ();
 private:

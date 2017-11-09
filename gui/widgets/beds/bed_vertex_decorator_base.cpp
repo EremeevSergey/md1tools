@@ -48,6 +48,12 @@ void CBedVertexDecoratorBase::append(const TVertex& vertex)
     update();
 }
 
+void CBedVertexDecoratorBase::set(const CVertexList& verts)
+{
+    Vertices = verts;
+    update();
+}
+
 void CBedVertexDecoratorBase::setZScale(double size)
 {
     ZScale = size;
@@ -57,14 +63,6 @@ void CBedVertexDecoratorBase::setZScale(double size)
 void CBedVertexDecoratorBase::setZOffset(double size)
 {
     ZOffset = size;
-    update();
-}
-
-void CBedVertexDecoratorBase::clearVertices()
-{
-    for (int i=0,n=Vertices.size();i<n;i++){
-        Vertices[i].Z=qQNaN();
-    }
     update();
 }
 

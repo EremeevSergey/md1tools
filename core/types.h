@@ -2,15 +2,17 @@
 #define CORE_TYPES_H
 #include <QtNumeric>
 #include <QString>
+#include <QList>
 
 struct TVertex{
     double X;
     double Y;
     double Z;
     TVertex(){X=qQNaN();Y=qQNaN();Z=qQNaN();}
-    QString toString(){return QString("{%1;%2;%3}").arg(QString::number(X,'f',2),
-                                                        QString::number(Y,'f',2),
-                                                        QString::number(Z,'f',2));}
+    QString toString(int precision=2){return QString("{%1;%2;%3}").
+                                                arg(QString::number(X,'f',precision),
+                                                    QString::number(Y,'f',precision),
+                                                    QString::number(Z,'f',precision));}
 
     TVertex(double x,double y){X=x;Y=y;Z=qQNaN();}
     TVertex(double x,double y,double z){X=x;Y=y;Z=z;}
@@ -24,4 +26,9 @@ struct TVertex{
         }
 };
 
+class CVertexList:public QList<TVertex>
+{
+public:
+    CVertexList(){;}
+};
 #endif // CORE_TYPES_H

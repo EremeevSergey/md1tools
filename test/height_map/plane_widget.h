@@ -4,7 +4,7 @@
 #include <QList>
 #include <QRectF>
 #include <QEvent>
-#include "../../gui/basewnd.h"
+#include "../../gui/color_gradient.h"
 #include "../../gui/widgets/beds/bed_vertex_decorator_base.h"
 
 /*****************************************************************************\
@@ -24,6 +24,7 @@ public:
 protected:
     int    meshSize;
     double maxTestRadius;
+    CColorGradient ColorGradient;
 protected:
     void   event            (QEvent * pe);
     void   updateVertices   ();

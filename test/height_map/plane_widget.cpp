@@ -12,6 +12,8 @@
 CPlaneWidget::CPlaneWidget(CBedWidgetBasic *parent):CBedVertexDecoratorBase(parent)
 {
     meshSize      = 12;
+    // подготавливаем цветовую поллитру
+    ColorGradient.createRainbow(-1,1);
     setTestRadius    (70.0);
 }
 
@@ -91,7 +93,8 @@ void CPlaneWidget::showVertexRect(QPainter &painter, int index)
     QString str;
 //    QBrush origBrush = painter.brush();
     if (!qIsNaN(ver.Z)){
-        painter.setBrush(QBrush(getRectColor(ver.Z)));
+//        painter.setBrush(QBrush(getRectColor(ver.Z)));
+        painter.setBrush(QBrush(ColorGradient.getColorByValue(ver.Z*ZScale)));
         str = QString::number(ver.Z,'f',2);
     }
     else {

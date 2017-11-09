@@ -32,8 +32,11 @@ void CBedWidgetBasic::paintEvent (QPaintEvent * event)
     draw(painter);
     for (int i=0,n=Decorators.size();i<n;i++){
         CBedDecoratorBase* d = Decorators.at(i);
-        if (d && d->Visible)
+        if (d && d->Visible){
+            painter.save();
             d->draw(painter);
+            painter.restore();
+        }
     }
     painter.end();
 }

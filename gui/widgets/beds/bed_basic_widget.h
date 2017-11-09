@@ -110,7 +110,7 @@ protected:
     virtual void  event (QEvent * pe)=0;
 protected:
     CBedWidgetBasic*        BedWidget;
-    QPainter                Painter;
+    //QPainter                Painter;
     bool                    Visible;
     bool                    Locked;
 };

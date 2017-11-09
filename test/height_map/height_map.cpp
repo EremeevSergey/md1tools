@@ -91,6 +91,7 @@ void CHeightMapWindow::activeLoop()
         if (!qIsNaN(z)) ver.Z = z - dsbHeight->value();
         else            ver.Z = z;
         RectDecorator->setAt(currentVertexIndex,ver);
+        RadarDecorator->setAt(currentVertexIndex,ver);
         displayStat();
         currentVertexIndex++;
         if (!gotoxyz()){
@@ -111,15 +112,29 @@ CHeightMapWindow::CHeightMapWindow(QWidget *parent) :
     setWindowTitle(tr("Height map."));
     setWindowIcon(QIcon(":/images/heightmap.png"));
     Bed = new CBlackBedWidget();
-    RectDecorator = new CPlaneWidget(Bed);
+    RectDecorator  = new CPlaneWidget(Bed);
+    RadarDecorator = new CBedRadarDecorator(Bed);
+    RadarDecorator->setVisible(false);
     mainLayout->insertWidget(0,Bed,4);
+//    mainLayout->addWidget(Bed);
+
+    Legend = new CLegendWidget();
+    Legend->ColorGradient.createRainbow(-1,1);
+    layoutLegend->insertWidget(1,Legend);
+
     leCounts->setText(QString::number(RectDecorator->count()));
     dsbRadius->setValue(RectDecorator->getTestRadius());
     sbMeshSize->setValue(RectDecorator->getMeshSize());
     ZScaleSlider->setValue((int)(RectDecorator->getZScale())-1);
     leZScale->setText(QString::number(RectDecorator->getZScale(),'f',1));
+    RadarDecorator->set(RectDecorator->getVertices());
+    RadarDecorator->setZOffset(RectDecorator->getZOffset());
+    RadarDecorator->setZScale(RectDecorator->getZScale());
     connect (&Printer,SIGNAL(signalCommandReady(int)),
              SLOT(slotCommandExecuted(int)),Qt::QueuedConnection);
+    connect(rbRectangles,SIGNAL(clicked()),SLOT(slotRbDecoratorClicked()));
+    connect(rbRadar     ,SIGNAL(clicked()),SLOT(slotRbDecoratorClicked()));
+    connect(&Printer,SIGNAL(signalOpened()),SLOT(slotOpened()));
     updateControls();
 }
 
@@ -216,6 +231,7 @@ void CHeightMapWindow::displayStat()
 void CHeightMapWindow::on_dsbRadius_valueChanged(double arg1)
 {
     RectDecorator->setTestRadius(arg1);
+    RadarDecorator->set(RectDecorator->getVertices());
 }
 
 void CHeightMapWindow::on_dsbHeight_valueChanged(double arg1)
@@ -236,22 +252,33 @@ bool CHeightMapWindow::gotoxyz()
     return false;
 }
 
+void CHeightMapWindow::slotOpened ()
+{
+    CEePromRecord* record;
+    record = Printer.EEPROM->at(Printer.EEPROM->indexByStartName("Max printable radius"));
+    if (record)
+        Bed->setBedRadius(record->FValue);
+}
+
 void CHeightMapWindow::on_sbMeshSize_valueChanged(int arg1)
 {
     RectDecorator->setMeshSize(arg1);
     leCounts->setText(QString::number(RectDecorator->count()));
+    RadarDecorator->set(RectDecorator->getVertices());
 }
 
 void CHeightMapWindow::on_ZScaleSlider_valueChanged(int value)
 {
     double dval = 1.0 + (double)(value)*0.2;
-    RectDecorator->setZScale(dval);
+    RectDecorator ->setZScale(dval);
+    RadarDecorator->setZScale(dval);
     leZScale->setText(QString::number(dval,'f',1));
 }
 
 void CHeightMapWindow::on_pbClear_clicked()
 {
-    RectDecorator->clearVertices();
+    RectDecorator ->clear();
+    RadarDecorator->clear();
 }
 
 void CHeightMapWindow::on_pbSave_clicked()
@@ -308,9 +335,10 @@ void CHeightMapWindow::on_pbLoad_clicked()
         QFile file(fileName);
         if (file.open(QIODevice::ReadOnly)){
             QTextStream stream(&file);
-            RectDecorator->clear();
-            RectDecorator->lock();
+            //RectDecorator->clear();
+            //RectDecorator->lock();
             try{
+                CVertexList vlist;
                 while (!stream.atEnd()){
                     line = stream.readLine().trimmed();
                     QStringList list = line.split(':');
@@ -340,16 +368,18 @@ void CHeightMapWindow::on_pbLoad_clicked()
                                 else if (name=="z") vert.Z = list.at(1).trimmed().toDouble();
                             }
                             if (!qIsNaN(vert.X) && !qIsNaN(vert.Y))
-                                RectDecorator->append(vert);
+                                vlist.append(vert);
                         }
                     }
                 }
+                RectDecorator->set(vlist);
+                RadarDecorator->set(vlist);
             }
             catch(...){
                 mb.setText(file.errorString());
                 mb.exec();
             }
-            RectDecorator->unlock();
+            //RectDecorator->unlock();
             displayStat();
         }
         else{
@@ -358,3 +388,34 @@ void CHeightMapWindow::on_pbLoad_clicked()
         }
     }
 }
+
+
+void CHeightMapWindow::slotRbDecoratorClicked()
+{
+    RectDecorator->setVisible(rbRectangles->isChecked());
+    RadarDecorator->setVisible(rbRadar->isChecked());
+}
+
+/*****************************************************************************\
+*                                                                             *
+*                                                                             *
+\*****************************************************************************/
+CLegendWidget::CLegendWidget(QWidget *parent):QWidget(parent)
+{
+
+}
+
+void CLegendWidget::paintEvent(QPaintEvent *event)
+{
+    QWidget::paintEvent(event);
+    QPainter painter;
+    float dh = (1.0+1.0)/float(height());// -1.0.....+1.0
+    painter.begin(this);
+    float h=1;
+    for (int i =0,n= height();i<n;i++,h-=dh){
+        painter.setPen(ColorGradient.getColorByValue(h));
+        painter.drawLine(0,i,width(),i);
+    }
+    painter.end();
+}
+

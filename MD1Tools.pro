@@ -47,7 +47,9 @@ SOURCES += main.cpp\
     test/height_map/height_map.cpp \
     test/height_map/plane_widget.cpp \
     gui/widgets/beds/black_bed_widget.cpp \
-    gui/widgets/beds/bed_vertex_decorator_base.cpp
+    gui/widgets/beds/bed_vertex_decorator_base.cpp \
+    gui/widgets/beds/radar_decorator.cpp \
+    gui/color_gradient.cpp
 
 HEADERS  += mainwindow.h \
     core/printer/printer.h \
@@ -85,7 +87,9 @@ HEADERS  += mainwindow.h \
     test/height_map/height_map.h \
     test/height_map/plane_widget.h \
     gui/widgets/beds/black_bed_widget.h \
-    gui/widgets/beds/bed_vertex_decorator_base.h
+    gui/widgets/beds/bed_vertex_decorator_base.h \
+    gui/widgets/beds/radar_decorator.h \
+    gui/color_gradient.h
 
 RESOURCES += \
     gui/images/images.qrc
